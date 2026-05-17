@@ -1,0 +1,15 @@
+# Data files
+data/raw/*.xlsx
+data/raw/*.csv
+data/processed/*.csv
+
+# Environment
+.env
+venv/
+__pycache__/
+*.pyc
+
+# Local config
+.vscode/
+.DS_Store
+*.log
