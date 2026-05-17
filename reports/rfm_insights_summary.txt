@@ -1,0 +1,26 @@
+RFM ANALYSIS INSIGHTS SUMMARY
+==================================================
+
+Analysis Date: 2026-05-17
+Total Customers Analyzed: 5,878
+Total Revenue: $17,374,804.27
+
+Segment Distribution:
+  Champions: 1821 customers (30.98%)
+  At Risk: 687 customers (11.69%)
+  Need Attention: 677 customers (11.52%)
+  Hibernating: 571 customers (9.71%)
+  Other: 517 customers (8.8%)
+  Loyal Customers: 488 customers (8.3%)
+  Potential Loyalists: 483 customers (8.22%)
+  New Customers: 336 customers (5.72%)
+  Lost: 161 customers (2.74%)
+  Promising: 110 customers (1.87%)
+  About to Sleep: 27 customers (0.46%)
+
+==================================================
+Key Recommendations:
+- Retain Champions with VIP program
+- Recover At Risk customers with win-back offers
+- Convert New Customers with second purchase incentives
+- Monitor segment migration monthly
