@@ -18,7 +18,15 @@ This project delivers a **complete customer intelligence solution** for retail b
 - **A/B Testing Framework** - Data-driven marketing decisions
 - **Interactive Power BI Dashboard** - Real-time business monitoring
 
-### 🎯 Business Impact(to do)
+### 🎯 Business Impact
+
+| Metric                               | Value                |
+| ------------------------------------ | -------------------- |
+| **High-Risk Customers Identified**   | 579                  |
+| **Potential Revenue at Risk**        | £1,816,549.70        |
+| **Churn Prediction Accuracy**        | 85% ROC-AUC          |
+| **Customer Segments Identified**     | 11 Distinct Groups   |
+| **Top Segment Revenue Contribution** | 75.9% from Champions |
 
 ## 🏗️ System Architecture
 
@@ -31,8 +39,6 @@ This project delivers a **complete customer intelligence solution** for retail b
 │ SQL Database │ Analytics │ Power BI │ Automated │
 │ (MySQL) │ → KPIs │ Dashboard │ Reporting │
 └───────────────┴───────────────┴───────────────┴────────────────┘
-
-```
 
 ## 🛠️ Technology Stack
 
@@ -58,7 +64,7 @@ customer-intelligence/
 ├── notebooks/
 │ ├── 01_data_cleaning.ipynb # Data preparation(done)
 │ ├── 02_rfm_analysis.ipynb # Customer segmentation(done)
-│ ├── 03_churn_prediction.ipynb # ML churn model(to do)
+│ ├── 03_churn_prediction.ipynb # ML churn model(done)
 │ ├── 04_clv_analysis.ipynb # Lifetime value(to do)
 │ └── 05_ab_testing_simulation.ipynb # A/B test framework(to do)
 │
@@ -85,4 +91,7 @@ customer-intelligence/
 Awa Mbaye - [evash0uwha@gmail.com]
 
 Project Link: [https://github.com/BrokerRecord/Customer-Intelligence]
+
+```
+
 ```
