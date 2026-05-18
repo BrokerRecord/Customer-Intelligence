@@ -23,13 +23,14 @@ This project delivers a **complete customer intelligence solution** for retail b
 | Metric                               | Value                |
 | ------------------------------------ | -------------------- |
 | **High-Risk Customers Identified**   | 579                  |
-| **Potential Revenue at Risk**        | £1,816,549.70        |
-| **Churn Prediction Accuracy**        | 85% ROC-AUC          |
+| **Potential Revenue at Risk**        | $213,075.61          |
+| **Churn Prediction Accuracy**        | 78% ROC-AUC          |
 | **Customer Segments Identified**     | 11 Distinct Groups   |
 | **Top Segment Revenue Contribution** | 75.9% from Champions |
 
 ## 🏗️ System Architecture
 
+```
 ┌─────────────────────────────────────────────────────────────────┐
 │ DATA PIPELINE │
 ├───────────────┬───────────────┬───────────────┬────────────────┤
@@ -39,6 +40,7 @@ This project delivers a **complete customer intelligence solution** for retail b
 │ SQL Database │ Analytics │ Power BI │ Automated │
 │ (MySQL) │ → KPIs │ Dashboard │ Reporting │
 └───────────────┴───────────────┴───────────────┴────────────────┘
+```
 
 ## 🛠️ Technology Stack
 
@@ -93,5 +95,6 @@ Awa Mbaye - [evash0uwha@gmail.com]
 Project Link: [https://github.com/BrokerRecord/Customer-Intelligence]
 
 ```
+
 
 ```
