@@ -1,4 +1,3 @@
-```markdown
 # 🎯 Customer Intelligence & Churn Prediction System
 
 > **Enterprise-grade retail analytics platform**: From raw transaction data to predictive insights
@@ -32,6 +31,7 @@ This project delivers a **complete customer intelligence solution** for retail b
 │ SQL Database │ Analytics │ Power BI │ Automated │
 │ (MySQL) │ → KPIs │ Dashboard │ Reporting │
 └───────────────┴───────────────┴───────────────┴────────────────┘
+
 ```
 
 ## 🛠️ Technology Stack
@@ -85,3 +85,4 @@ customer-intelligence/
 Awa Mbaye - [evash0uwha@gmail.com]
 
 Project Link: [https://github.com/BrokerRecord/Customer-Intelligence]
+```
