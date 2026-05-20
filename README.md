@@ -69,6 +69,7 @@ This project delivers a **complete customer intelligence solution** for retail b
 │ SQL Database │ Analytics │ Power BI │ Automated │
 │ (MySQL) │ → KPIs │ Dashboard │ Reporting │
 └───────────────┴───────────────┴───────────────┴────────────────┘
+```
 
 ## 🛠️ Technology Stack
 
@@ -115,7 +116,7 @@ customer-intelligence/
 ├── requirements.txt # Python dependencies
 └── README.md # Project documentation
 
-````
+```
 
 ## 🚀 Getting Started
 
@@ -125,7 +126,7 @@ customer-intelligence/
 Python 3.10+
 MySQL 8.0+
 Power BI Desktop (for dashboard)
-````
+```
 
 ### Installation
 
