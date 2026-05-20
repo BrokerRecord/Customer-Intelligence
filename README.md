@@ -1,5 +1,3 @@
-Here's your updated and improved README.md file:
-
 ```markdown
 # 🎯 Customer Intelligence & Churn Prediction System
 
@@ -235,3 +233,7 @@ Distributed under the MIT License. See `LICENSE` for more information.
 ---
 
 ### ⭐ Star this repo if you found it helpful!
+
+```
+
+```
