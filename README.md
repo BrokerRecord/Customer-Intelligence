@@ -1,4 +1,3 @@
-```markdown
 # 🎯 Customer Intelligence & Churn Prediction System
 
 > **Enterprise-grade retail analytics platform**: From raw transaction data to predictive insights
@@ -58,6 +57,7 @@ This project delivers a **complete customer intelligence solution** for retail b
 - **ROI**: **491.76%** with projected net profit of **$15,706**
 
 ## 🏗️ System Architecture
+
 ```
 
 ┌─────────────────────────────────────────────────────────────────┐
@@ -70,19 +70,17 @@ This project delivers a **complete customer intelligence solution** for retail b
 │ (MySQL) │ → KPIs │ Dashboard │ Reporting │
 └───────────────┴───────────────┴───────────────┴────────────────┘
 
-```
-
 ## 🛠️ Technology Stack
 
-| Layer | Technologies |
-|-------|--------------|
-| **Data Processing** | Python (Pandas, NumPy) |
-| **Machine Learning** | scikit-learn, XGBoost, SHAP, Lifetimes |
-| **Statistical Analysis** | SciPy, StatsModels |
-| **Database** | MySQL |
-| **Visualization** | Power BI, Matplotlib, Seaborn |
-| **Automation** | GitHub Actions, Cron |
-| **Version Control** | Git, GitHub |
+| Layer                    | Technologies                           |
+| ------------------------ | -------------------------------------- |
+| **Data Processing**      | Python (Pandas, NumPy)                 |
+| **Machine Learning**     | scikit-learn, XGBoost, SHAP, Lifetimes |
+| **Statistical Analysis** | SciPy, StatsModels                     |
+| **Database**             | MySQL                                  |
+| **Visualization**        | Power BI, Matplotlib, Seaborn          |
+| **Automation**           | GitHub Actions, Cron                   |
+| **Version Control**      | Git, GitHub                            |
 
 ## 📁 Repository Structure
 
