@@ -67,7 +67,7 @@ customer-intelligence/
 │ ├── 01_data_cleaning.ipynb # Data preparation(done)
 │ ├── 02_rfm_analysis.ipynb # Customer segmentation(done)
 │ ├── 03_churn_prediction.ipynb # ML churn model(done)
-│ ├── 04_clv_analysis.ipynb # Lifetime value(to do)
+│ ├── 04_clv_analysis.ipynb # Lifetime value(done)
 │ └── 05_ab_testing_simulation.ipynb # A/B test framework(to do)
 │
 ├── scripts/
