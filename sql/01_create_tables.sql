@@ -150,7 +150,7 @@ CREATE TABLE daily_kpi_snapshot (
 DROP TABLE IF EXISTS churn_predictions;
 
 CREATE TABLE churn_predictions (
-    customer_id INT NOT NULL PRIMARY KEY,
+    customer_id INT AUTO_INCREMENT PRIMARY KEY,
     churn_risk_score DECIMAL(5, 4) NOT NULL,
     predicted_churn BOOLEAN DEFAULT FALSE,
     days_since_last INT NOT NULL,

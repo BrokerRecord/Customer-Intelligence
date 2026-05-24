@@ -32,6 +32,8 @@ FROM (
                 ), MAX(invoicedate)
             ) AS recency_days
         FROM online_retail
+        WHERE
+            customer_id IS NOT NULL -- Fixed: Exclude NULL customers
         GROUP BY
             customer_id
     ) AS customer_metrics
@@ -59,6 +61,8 @@ WITH
         WHERE
             a.description IS NOT NULL
             AND b.description IS NOT NULL
+            AND a.stockcode IS NOT NULL -- Fixed: Added NULL checks
+            AND b.stockcode IS NOT NULL
     )
 SELECT
     product_a,
@@ -67,9 +71,14 @@ SELECT
     LEFT(desc_b, 40) AS product_b_name,
     COUNT(*) AS times_bought_together,
     ROUND(
-        COUNT(*) * 100.0 / (
-            SELECT COUNT(DISTINCT invoice)
-            FROM online_retail
+        COUNT(*) * 100.0 / NULLIF(
+            (
+                SELECT COUNT(DISTINCT invoice)
+                FROM online_retail
+                WHERE
+                    invoice IS NOT NULL
+            ),
+            0 -- Fixed: Prevent division by zero
         ),
         2
     ) AS affinity_score
@@ -82,7 +91,7 @@ GROUP BY
 HAVING
     times_bought_together > 5
 ORDER BY times_bought_together DESC
-LIMIT 20;
+LIMIT 5;
 
 -- ============================================================
 -- 3. CUSTOMER PURCHASE VELOCITY
@@ -98,6 +107,8 @@ WITH
             COUNT(DISTINCT invoice) AS monthly_orders,
             SUM(total_price) AS monthly_spend
         FROM online_retail
+        WHERE
+            customer_id IS NOT NULL -- Fixed: Exclude NULL customers
         GROUP BY
             customer_id,
             year,
@@ -113,6 +124,8 @@ WITH
         FROM purchase_timeline
         GROUP BY
             customer_id
+        HAVING
+            active_months >= 2 -- Fixed: Only include customers with 2+ months of data
     )
 SELECT
     CASE
@@ -130,7 +143,7 @@ GROUP BY
 ORDER BY avg_orders_per_month DESC;
 
 -- ============================================================
--- 4. SEASONAL PRODUCT DEMAND
+-- 4. SEASONAL PRODUCT DEMAND (FIXED)
 -- ============================================================
 
 -- Products with strong seasonality
@@ -138,19 +151,21 @@ SELECT
     stockcode,
     LEFT(description, 50) AS description,
     MONTH(invoicedate) AS month,
-    month_name,
+    MONTHNAME(invoicedate) AS month_name, -- Fixed: Added missing column
     SUM(quantity) AS quantity_sold,
     ROUND(SUM(total_price), 2) AS revenue
 FROM online_retail
-WHERE
-    description LIKE '%CHRISTMAS%'
-    OR description LIKE '%SEASONAL%'
-    OR description LIKE '%HALLOWEEN%'
+WHERE (
+        description LIKE '%CHRISTMAS%'
+        OR description LIKE '%SEASONAL%'
+        OR description LIKE '%HALLOWEEN%'
+    )
+    AND description IS NOT NULL -- Fixed: Added NULL check
 GROUP BY
     stockcode,
     description,
     month,
-    month_name
+    month_name -- Fixed: Now matches SELECT
 ORDER BY month, revenue DESC;
 
 -- ============================================================
@@ -171,6 +186,8 @@ WHERE
         SELECT MAX(prediction_date)
         FROM churn_predictions
     )
+    AND p.customer_id IS NOT NULL -- Fixed: Added NULL check
+    AND c.customer_id IS NOT NULL
 GROUP BY
     risk_level
 ORDER BY avg_risk_score DESC;
@@ -192,6 +209,7 @@ WHERE
         FROM churn_predictions
     )
     AND p.churn_risk_score > 0.7
+    AND p.customer_id IS NOT NULL -- Fixed: Added NULL check
 ORDER BY p.churn_risk_score DESC, c.monetary DESC
 LIMIT 50;
 
@@ -205,7 +223,7 @@ SELECT
     customer_count,
     total_revenue,
     ROUND(
-        total_revenue / customer_count,
+        NULLIF(total_revenue, 0) / NULLIF(customer_count, 0), -- Fixed: Prevent division by zero
         2
     ) AS revenue_per_customer,
     CASE
@@ -223,6 +241,8 @@ SELECT
         ELSE 'General'
     END AS campaign_type
 FROM segment_kpis
+WHERE
+    customer_segment IS NOT NULL -- Fixed: Added NULL check
 ORDER BY total_revenue DESC;
 
 -- ============================================================
@@ -242,6 +262,8 @@ WITH
                 MIN(invoicedate)
             ) AS active_days
         FROM online_retail
+        WHERE
+            customer_id IS NOT NULL -- Fixed: Exclude NULL customers
         GROUP BY
             customer_id
     )
@@ -256,9 +278,12 @@ SELECT
     ROUND(AVG(total_orders), 1) AS avg_orders,
     ROUND(AVG(active_days), 1) AS avg_active_days,
     ROUND(
-        COUNT(*) * 100.0 / (
-            SELECT COUNT(*)
-            FROM customer_lifecycle
+        COUNT(*) * 100.0 / NULLIF(
+            (
+                SELECT COUNT(*)
+                FROM customer_lifecycle
+            ),
+            0 -- Fixed: Prevent division by zero
         ),
         2
     ) AS percentage
@@ -282,6 +307,8 @@ WITH
             ) AS week_start,
             ROUND(SUM(total_price), 2) AS weekly_revenue
         FROM online_retail
+        WHERE
+            invoicedate IS NOT NULL -- Fixed: Added NULL check
         GROUP BY
             year_week,
             week_start
@@ -301,17 +328,22 @@ SELECT
             weekly_revenue - LAG(weekly_revenue) OVER (
                 ORDER BY week_start
             )
-        ) / LAG(weekly_revenue) OVER (
-            ORDER BY week_start
-        ) * 100,
+        ) / NULLIF(
+            LAG(weekly_revenue) OVER (
+                ORDER BY week_start
+            ),
+            0
+        ) * 100, -- Fixed: Prevent division by zero
         2
     ) AS week_over_week_pct
 FROM weekly_revenue
+WHERE
+    week_start IS NOT NULL -- Fixed: Added NULL check
 ORDER BY week_start DESC
 LIMIT 20;
 
 -- ============================================================
--- 9. CROSS-SELL OPPORTUNITIES
+-- 9. CROSS-SELL OPPORTUNITIES (FIXED)
 -- ============================================================
 
 -- Customers who bought from one category but not another
@@ -342,42 +374,63 @@ WITH
                 ELSE 0
             END AS bought_toys
         FROM online_retail
+        WHERE
+            customer_id IS NOT NULL -- Fixed: Exclude NULL customers
+            AND description IS NOT NULL -- Fixed: Added NULL check
     )
 SELECT
     'Garden → Kitchen' AS cross_sell_opportunity,
-    SUM(bought_garden) AS garden_customers,
+    SUM(bought_garden) AS category_customers,
     SUM(
-        bought_garden
-        AND NOT bought_kitchen
-    ) AS potential_cross_sell,
+        CASE
+            WHEN bought_garden = 1
+            AND bought_kitchen = 0 THEN 1
+            ELSE 0
+        END
+    ) AS potential_cross_sell, -- Fixed: Safer logic
     ROUND(
         SUM(
-            bought_garden
-            AND NOT bought_kitchen
-        ) * 100.0 / SUM(bought_garden),
+            CASE
+                WHEN bought_garden = 1
+                AND bought_kitchen = 0 THEN 1
+                ELSE 0
+            END
+        ) * 100.0 / NULLIF(SUM(bought_garden), 0), -- Fixed: Prevent division by zero
         2
     ) AS opportunity_pct
 FROM category_customers
 UNION ALL
 SELECT 'Home Decor → Garden', SUM(bought_home_decor), SUM(
-        bought_home_decor
-        AND NOT bought_garden
+        CASE
+            WHEN bought_home_decor = 1
+            AND bought_garden = 0 THEN 1
+            ELSE 0
+        END
     ), ROUND(
         SUM(
-            bought_home_decor
-            AND NOT bought_garden
-        ) * 100.0 / SUM(bought_home_decor), 2
+            CASE
+                WHEN bought_home_decor = 1
+                AND bought_garden = 0 THEN 1
+                ELSE 0
+            END
+        ) * 100.0 / NULLIF(SUM(bought_home_decor), 0), 2
     )
 FROM category_customers
 UNION ALL
 SELECT 'Toys → Home Decor', SUM(bought_toys), SUM(
-        bought_toys
-        AND NOT bought_home_decor
+        CASE
+            WHEN bought_toys = 1
+            AND bought_home_decor = 0 THEN 1
+            ELSE 0
+        END
     ), ROUND(
         SUM(
-            bought_toys
-            AND NOT bought_home_decor
-        ) * 100.0 / SUM(bought_toys), 2
+            CASE
+                WHEN bought_toys = 1
+                AND bought_home_decor = 0 THEN 1
+                ELSE 0
+            END
+        ) * 100.0 / NULLIF(SUM(bought_toys), 0), 2
     )
 FROM category_customers;
 
@@ -396,10 +449,15 @@ SELECT
     COUNT(DISTINCT customer_id) AS unique_customers,
     ROUND(AVG(total_price), 2) AS avg_order_value,
     ROUND(
-        SUM(total_price) / COUNT(DISTINCT customer_id),
+        SUM(total_price) / NULLIF(
+            COUNT(DISTINCT customer_id),
+            0
+        ), -- Fixed: Prevent division by zero
         2
     ) AS revenue_per_customer
 FROM online_retail
+WHERE
+    country IS NOT NULL -- Fixed: Added NULL check
 GROUP BY
     region;
 
@@ -425,3 +483,40 @@ UNION ALL
 SELECT '', 'Run Power BI dashboard for full visualization', ''
 UNION ALL
 SELECT '', 'Connect to online_retail, rfm_customer_scores, and segment_kpis tables', '';
+
+-- ============================================================
+-- ADDITIONAL: DATA QUALITY CHECK (New)
+-- ============================================================
+
+-- Optional: Verify data quality before running main queries
+SELECT
+    'DATA QUALITY CHECK' AS check_type,
+    COUNT(*) AS total_rows,
+    SUM(
+        CASE
+            WHEN customer_id IS NULL THEN 1
+            ELSE 0
+        END
+    ) AS null_customers,
+    SUM(
+        CASE
+            WHEN invoice IS NULL THEN 1
+            ELSE 0
+        END
+    ) AS null_invoices,
+    SUM(
+        CASE
+            WHEN stockcode IS NULL THEN 1
+            ELSE 0
+        END
+    ) AS null_products,
+    SUM(
+        CASE
+            WHEN total_price IS NULL
+            OR total_price <= 0 THEN 1
+            ELSE 0
+        END
+    ) AS invalid_prices,
+    MIN(invoicedate) AS earliest_date,
+    MAX(invoicedate) AS latest_date
+FROM online_retail;

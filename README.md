@@ -23,7 +23,7 @@ This project delivers a **complete customer intelligence solution** for retail b
 | Metric                               | Value                |
 | ------------------------------------ | -------------------- |
 | **High-Risk Customers Identified**   | 579                  |
-| **Potential Revenue at Risk**        | $213,075.61          |
+| **Potential Revenue at Risk**        | $389,763.03          |
 | **Churn Prediction Accuracy**        | 78% ROC-AUC          |
 | **Customer Segments Identified**     | 11 Distinct Groups   |
 | **Top Segment Revenue Contribution** | 75.9% from Champions |
@@ -105,9 +105,11 @@ customer-intelligence/
 │ └── run_pipeline.py # End-to-end pipeline (coming soon)
 │
 ├── sql/
-│ ├── 01_create_tables.sql # Schema definition (coming soon)
-│ ├── 02_kpi_queries.sql # KPI calculations (coming soon)
-│ └── 03_analytical_queries.sql # Advanced analytics (coming soon)
+│ ├── 01_create_tables.sql # Schema definition ✅
+│ ├── 02_load_data.sql # loading data into tables ✅
+│ ├── 03_kpi_queries.sql # KPI calculations ✅
+│ ├── 04_analytical_queries.sql # Advanced analytics ✅
+│ └── db.sql # database creation ✅
 │
 ├── models/ # Saved ML models
 ├── reports/ # Generated reports & visualizations

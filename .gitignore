@@ -2,6 +2,7 @@
 data/raw/*.xlsx
 data/raw/*.csv
 data/processed/*.csv
+data/sql data/*.csv
 
 # Environment
 .env
