@@ -178,9 +178,7 @@ Git (for version control)
 
    ```bash
    pip install -r requirements.txt
-   ```
 
-   ```
 
    ```
 
@@ -212,7 +210,6 @@ Git (for version control)
 
 6. **Open the Power BI dashboard**
    - Open `powerbi/Customer Intelligence Dashboard.pbix`
-   - Update MySQL connection settings
    - Refresh data
 
 ## 📊 Analysis Modules
