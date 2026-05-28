@@ -22,12 +22,12 @@ This project delivers a **complete customer intelligence solution** for retail b
 
 | Metric                               | Value                |
 | ------------------------------------ | -------------------- |
-| **High-Risk Customers Identified**   | 579                  |
-| **Potential Revenue at Risk**        | $389,763.03          |
-| **Churn Prediction Accuracy**        | 78% ROC-AUC          |
+| **High-Risk Customers Identified**   | 2,161                |
+| **Potential Revenue at Risk**        | £307,781             |
+| **Churn Prediction Accuracy**        | 73% ROC-AUC          |
 | **Customer Segments Identified**     | 11 Distinct Groups   |
 | **Top Segment Revenue Contribution** | 75.9% from Champions |
-| **Campaign ROI**                     | 491.76%              |
+| **Campaign ROI**                     | 648.2%               |
 
 ## 📈 Key Findings
 
@@ -40,9 +40,9 @@ This project delivers a **complete customer intelligence solution** for retail b
 ### Churn Prediction Results
 
 - **Overall churn rate**: 50.78%
-- **Model performance**: 0.78 ROC-AUC (Random Forest)
+- **Model performance**: 0.7294 ROC-AUC (Logistic Regression)
 - **Top predictors**: Total orders, quantity purchased, total spend
-- **579 active customers** identified as high-risk
+- **2161 active customers** identified as high-risk
 
 ### Customer Lifetime Value
 
@@ -108,7 +108,6 @@ customer-intelligence/
 │ ├── 01_create_tables.sql # Schema definition ✅
 │ ├── 02_load_data.sql # loading data into tables ✅
 │ ├── 03_kpi_queries.sql # KPI calculations ✅
-│ ├── 04_analytical_queries.sql # Advanced analytics ✅
 │ └── db.sql # database creation ✅
 │
 ├── models/ # Saved ML models
@@ -179,7 +178,7 @@ jupyter notebook notebooks/
 
 - 90-day churn definition
 - 12 behavioral features
-- Random Forest model (0.78 AUC)
+- Logistic Regression model (0.7294 AUC)
 - SHAP feature importance analysis
 
 ### 4. CLV Analysis (`04_clv_analysis.ipynb`)

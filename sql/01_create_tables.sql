@@ -1,16 +1,15 @@
--- ============================================================
--- SQL Script 01: Tables
--- Purpose: Set up the database schema for retail analytics
--- ============================================================
+-- ============================================================================
+-- SQL Script 01: Database and Table Creation
+-- ============================================================================
 
 USE retail_analytics;
 
--- ============================================================
--- 1. MAIN TRANSACTIONS TABLE
--- ============================================================
-DROP TABLE IF EXISTS online_retail;
+-- ============================================================================
+-- 1. FACT TABLE: Cleaned Transactions
+-- ============================================================================
+DROP TABLE IF EXISTS fact_transactions;
 
-CREATE TABLE online_retail (
+CREATE TABLE fact_transactions (
     invoice VARCHAR(20) NOT NULL,
     stockcode VARCHAR(20) NOT NULL,
     `description` TEXT,
@@ -20,7 +19,6 @@ CREATE TABLE online_retail (
     customer_id INT NULL,
     country VARCHAR(100) NOT NULL,
     total_price DECIMAL(12, 2) NOT NULL,
-
     `year` INT NOT NULL,
     `month` INT NOT NULL,
     month_name VARCHAR(20) NOT NULL,
@@ -28,185 +26,263 @@ CREATE TABLE online_retail (
     `hour` INT NOT NULL,
     day_of_week VARCHAR(20) NOT NULL,
     `year_month` VARCHAR(7) NOT NULL,
-
--- Indexes for performance
-INDEX idx_customer (customer_id),
-    INDEX idx_date (invoicedate),
-    INDEX idx_country (country),
-    INDEX idx_product (stockcode),
-    INDEX idx_year_month ( `year_month`)
+    transaction_type VARCHAR(50),
+    is_test_transaction INT DEFAULT 0,
+    customer_type VARCHAR(50),
+    INDEX idx_customer (customer_id),
+    INDEX idx_date (invoicedate)
 );
 
--- ============================================================
--- 2. RFM CUSTOMER SCORES TABLE
--- ============================================================
-DROP TABLE IF EXISTS rfm_customer_scores;
+-- ============================================================================
+-- 2. PRODUCT DIMENSION
+-- ============================================================================
+DROP TABLE IF EXISTS dim_product;
 
-CREATE TABLE rfm_customer_scores (
+CREATE TABLE dim_product (
+    stockcode VARCHAR(20) PRIMARY KEY,
+    `description` TEXT,
+    product_category VARCHAR(100)
+);
+
+-- ============================================================================
+-- 3. DATE DIMENSION
+-- ============================================================================
+DROP TABLE IF EXISTS dim_date;
+
+CREATE TABLE dim_date (
+    date_key VARCHAR(20) PRIMARY KEY,
+    full_date DATE NOT NULL,
+    `year` INT NOT NULL,
+    quarter INT NOT NULL,
+    `month` INT NOT NULL,
+    month_name VARCHAR(20) NOT NULL,
+    `day` INT NOT NULL,
+    day_of_week INT NOT NULL,
+    day_name VARCHAR(20) NOT NULL,
+    week_of_year INT NOT NULL,
+    is_weekend INT NOT NULL,
+    `year_month` VARCHAR(7) NOT NULL,
+    year_quarter VARCHAR(10) NOT NULL
+);
+
+-- ============================================================================
+-- 4. CUSTOMER DIMENSION (RFM)
+-- ============================================================================
+DROP TABLE IF EXISTS dim_customer;
+
+CREATE TABLE dim_customer (
     customer_id INT PRIMARY KEY,
-    recency INT NOT NULL,
-    frequency INT NOT NULL,
-    monetary DECIMAL(12, 2) NOT NULL,
+    customer_segment VARCHAR(50) NOT NULL,
+    value_tier VARCHAR(50),
+    days_since_last_purchase INT NOT NULL,
+    total_orders INT NOT NULL,
+    total_spent DECIMAL(14, 2) NOT NULL,
     r_score INT NOT NULL,
     f_score INT NOT NULL,
     m_score INT NOT NULL,
     rfm_score VARCHAR(5) NOT NULL,
     rfm_total INT NOT NULL,
-    customer_segment VARCHAR(50) NOT NULL,
-    INDEX idx_segment (customer_segment),
-    INDEX idx_rfm_score (rfm_total),
-    INDEX idx_recency (recency)
+    first_purchase_date DATE, -- DATE only, not DATETIME
+    customer_tenure_days INT,
+    customer_tenure_months DECIMAL(6, 1)
 );
 
--- ============================================================
--- 3. SEGMENT KPIS TABLE (Aggregated)
--- ============================================================
+-- ============================================================================
+-- 5. CUSTOMER CLV DIMENSION
+-- ============================================================================
+DROP TABLE IF EXISTS dim_customer_clv;
+
+CREATE TABLE dim_customer_clv (
+    customer_id INT PRIMARY KEY,
+    predicted_clv_12m DECIMAL(14, 2) NOT NULL,
+    clv_segment VARCHAR(50) NOT NULL,
+    clv_tier VARCHAR(50) NOT NULL,
+    expected_purchases_next_12m DECIMAL(10, 4) NOT NULL,
+    historical_frequency INT NOT NULL,
+    recency_days INT NOT NULL,
+    customer_age_days INT NOT NULL,
+    avg_order_value DECIMAL(14, 2) NOT NULL,
+    clv_percentile DECIMAL(6, 2),
+    clv_score INT
+);
+
+-- ============================================================================
+-- 6. CUSTOMER RISK DIMENSION
+-- ============================================================================
+DROP TABLE IF EXISTS dim_customer_risk;
+
+CREATE TABLE dim_customer_risk (
+    customer_id INT PRIMARY KEY,
+    churn_risk_score DECIMAL(6, 5) NOT NULL,
+    risk_level VARCHAR(20) NOT NULL,
+    risk_bucket VARCHAR(20) DEFAULT 'Unknown',
+    predicted_churn INT NOT NULL,
+    actual_churned INT
+);
+
+-- ============================================================================
+-- 7. HIGH RISK ACTIVE CUSTOMERS
+-- ============================================================================
+DROP TABLE IF EXISTS high_risk_active_customers;
+
+CREATE TABLE high_risk_active_customers (
+    customer_id INT PRIMARY KEY,
+    churn_risk_score DECIMAL(6, 5) NOT NULL,
+    risk_level VARCHAR(20) NOT NULL,
+    predicted_churn INT NOT NULL,
+    actual_churned INT NOT NULL,
+    total_spent DECIMAL(14, 2) NOT NULL,
+    total_orders INT NOT NULL
+);
+
+-- ============================================================================
+-- 8. SEGMENT KPIs
+-- ============================================================================
 DROP TABLE IF EXISTS segment_kpis;
 
 CREATE TABLE segment_kpis (
-    segment_id INT AUTO_INCREMENT PRIMARY KEY,
-    customer_segment VARCHAR(50) NOT NULL,
+    customer_segment VARCHAR(50) PRIMARY KEY,
     customer_count INT NOT NULL,
-    avg_recency DECIMAL(10, 2),
-    avg_frequency DECIMAL(10, 2),
-    avg_monetary DECIMAL(12, 2),
-    total_revenue DECIMAL(14, 2),
-    revenue_percentage DECIMAL(5, 2),
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY uk_segment (customer_segment)
+    avg_recency DECIMAL(8, 2) NOT NULL,
+    avg_frequency DECIMAL(8, 2) NOT NULL,
+    avg_monetary DECIMAL(14, 2) NOT NULL,
+    total_revenue DECIMAL(16, 2) NOT NULL,
+    revenue_percentage DECIMAL(6, 2) NOT NULL
 );
 
--- ============================================================
--- 4. MONTHLY REVENUE TRACKING TABLE
--- ============================================================
-DROP TABLE IF EXISTS monthly_revenue;
+-- ============================================================================
+-- 9. CLV SEGMENT SUMMARY
+-- ============================================================================
+DROP TABLE IF EXISTS clv_segment_summary;
 
-CREATE TABLE monthly_revenue (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-	`year_month` VARCHAR(7) NOT NULL,
-    total_revenue DECIMAL(14, 2) NOT NULL,
-    total_orders INT NOT NULL,
-    unique_customers INT NOT NULL,
-    avg_order_value DECIMAL(10, 2),
-    INDEX idx_year_month ( `year_month`)
+CREATE TABLE clv_segment_summary (
+    clv_segment VARCHAR(50) NOT NULL,
+    customer_count INT NOT NULL,
+    avg_clv DECIMAL(14, 2) NOT NULL,
+    total_clv DECIMAL(16, 2) NOT NULL,
+    avg_frequency DECIMAL(10, 2) NOT NULL,
+    avg_monetary DECIMAL(14, 2) NOT NULL,
+    avg_predicted_purchases DECIMAL(10, 4) NOT NULL,
+    pct_of_customers DECIMAL(6, 2) NOT NULL,
+    pct_of_value DECIMAL(6, 2) NOT NULL,
+    snapshot_date DATE NOT NULL,
+    PRIMARY KEY (clv_segment, snapshot_date)
 );
 
--- ============================================================
--- 5. PRODUCT PERFORMANCE TABLE
--- ============================================================
-DROP TABLE IF EXISTS product_performance;
+-- ============================================================================
+-- 10. CLV TIER SUMMARY
+-- ============================================================================
+DROP TABLE IF EXISTS clv_tier_summary;
 
-CREATE TABLE product_performance (
-    product_id INT AUTO_INCREMENT PRIMARY KEY,
-    stockcode VARCHAR(20) NOT NULL,
-    description VARCHAR(255),
-    total_quantity_sold INT NOT NULL,
-    total_revenue DECIMAL(14, 2) NOT NULL,
-    avg_price DECIMAL(10, 2),
-    number_of_orders INT NOT NULL,
-    unique_customers INT NOT NULL,
-    INDEX idx_revenue (total_revenue DESC),
-    INDEX idx_quantity (total_quantity_sold DESC),
-    UNIQUE KEY uk_stockcode (stockcode)
+CREATE TABLE clv_tier_summary (
+    clv_tier VARCHAR(50) NOT NULL,
+    customer_count INT NOT NULL,
+    total_clv DECIMAL(16, 2) NOT NULL,
+    avg_clv DECIMAL(14, 2) NOT NULL,
+    avg_frequency DECIMAL(10, 2) NOT NULL,
+    avg_order_value DECIMAL(14, 2) NOT NULL,
+    snapshot_date DATE NOT NULL,
+    PRIMARY KEY (clv_tier, snapshot_date)
 );
 
--- ============================================================
--- 6. COUNTRY PERFORMANCE TABLE
--- ============================================================
-DROP TABLE IF EXISTS country_performance;
+-- ============================================================================
+-- 11. MONTHLY SEGMENT REVENUE
+-- ============================================================================
+DROP TABLE IF EXISTS monthly_segment_revenue;
 
-CREATE TABLE country_performance (
-    country_id INT AUTO_INCREMENT PRIMARY KEY,
-    country VARCHAR(100) NOT NULL,
-    total_revenue DECIMAL(14, 2) NOT NULL,
-    total_orders INT NOT NULL,
-    unique_customers INT NOT NULL,
-    avg_order_value DECIMAL(10, 2),
-    revenue_percentage DECIMAL(5, 2),
-    INDEX idx_revenue (total_revenue DESC),
-    UNIQUE KEY uk_country (country)
+CREATE TABLE monthly_segment_revenue (
+    `year_month` VARCHAR(7) NOT NULL,
+    customer_segment VARCHAR(50) NOT NULL,
+    revenue DECIMAL(16, 2) NOT NULL,
+    PRIMARY KEY (
+        `year_month`,
+        customer_segment
+    )
 );
 
--- ============================================================
--- 7. DAILY KPI SNAPSHOT TABLE (for time-series analysis)
--- ============================================================
-DROP TABLE IF EXISTS daily_kpi_snapshot;
+-- ============================================================================
+-- 12. REVENUE METRICS
+-- ============================================================================
+DROP TABLE IF EXISTS revenue_metrics;
 
-CREATE TABLE daily_kpi_snapshot (
-    snapshot_date DATE PRIMARY KEY,
-    total_revenue DECIMAL(14, 2),
-    total_orders INT,
-    unique_customers INT,
-    avg_order_value DECIMAL(10, 2),
-    new_customers INT,
-    returning_customers INT,
-    retention_rate DECIMAL(5, 2),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE revenue_metrics (
+    metric_name VARCHAR(100) NOT NULL,
+    metric_value DECIMAL(16, 2) NOT NULL,
+    currency VARCHAR(10) DEFAULT 'GBP',
+    snapshot_date DATE NOT NULL,
+    PRIMARY KEY (metric_name, snapshot_date)
 );
 
--- ============================================================
--- 8. CHURN PREDICTION RESULTS TABLE
--- ============================================================
-DROP TABLE IF EXISTS churn_predictions;
+-- ============================================================================
+-- 13. RISK SUMMARY
+-- ============================================================================
+DROP TABLE IF EXISTS risk_summary;
 
-CREATE TABLE churn_predictions (
-    customer_id INT AUTO_INCREMENT PRIMARY KEY,
-    churn_risk_score DECIMAL(5, 4) NOT NULL,
-    predicted_churn BOOLEAN DEFAULT FALSE,
-    days_since_last INT NOT NULL,
-    churned INT,  -- Adding this to match your CSV (0=active, 1=churned)
-    risk_level VARCHAR(20),
-    prediction_date DATE NOT NULL,
-    model_version VARCHAR(50),
-    INDEX idx_customer (customer_id),
-    INDEX idx_risk_score (churn_risk_score DESC),
-    INDEX idx_prediction_date (prediction_date)
+CREATE TABLE risk_summary (
+    risk_level VARCHAR(20) NOT NULL,
+    customer_count INT NOT NULL,
+    avg_risk_score DECIMAL(6, 5) NOT NULL,
+    risk_order INT NOT NULL,
+    snapshot_date DATE NOT NULL,
+    PRIMARY KEY (risk_level, snapshot_date)
 );
 
--- ============================================================
--- 9. A/B TEST RESULTS TABLE
--- ============================================================
+-- ============================================================================
+-- 14. A/B TEST RESULTS
+-- ============================================================================
 DROP TABLE IF EXISTS ab_test_results;
 
 CREATE TABLE ab_test_results (
-    test_id INT AUTO_INCREMENT PRIMARY KEY,
     test_name VARCHAR(100) NOT NULL,
-    test_start_date DATE NOT NULL,
-    test_end_date DATE,
-    control_group_size INT,
-    test_group_size INT,
-    control_conversion_rate DECIMAL(5, 4),
-    test_conversion_rate DECIMAL(5, 4),
-    p_value DECIMAL(10, 6),
-    is_significant BOOLEAN,
-    lift_percentage DECIMAL(5, 2),
-    recommended_action VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    test_date DATE NOT NULL,
+    target_segments VARCHAR(255) NOT NULL,
+    control_size INT NOT NULL,
+    test_size INT NOT NULL,
+    control_conversion DECIMAL(6, 5) NOT NULL,
+    test_conversion DECIMAL(6, 5) NOT NULL,
+    conversion_lift DECIMAL(6, 5) NOT NULL,
+    p_value DECIMAL(10, 6) NOT NULL,
+    is_significant INT NOT NULL, -- Changed to INT
+    control_arpu DECIMAL(10, 2) NOT NULL,
+    test_arpu DECIMAL(10, 2) NOT NULL,
+    revenue_lift DECIMAL(6, 5) NOT NULL,
+    revenue_p_value DECIMAL(10, 6) NOT NULL,
+    roi DECIMAL(10, 4) NOT NULL,
+    recommendation VARCHAR(50) NOT NULL
 );
 
--- ============================================================
--- 10. CLV PREDICTIONS TABLE
--- ============================================================
-DROP TABLE IF EXISTS clv_predictions;
+-- ============================================================================
+-- 15. CUSTOMER 360 VIEW
+-- ============================================================================
+DROP TABLE IF EXISTS customer_360_view;
 
-CREATE TABLE clv_predictions (
+CREATE TABLE customer_360_view (
     customer_id INT PRIMARY KEY,
-    frequency DECIMAL(10, 2),
-    recency DECIMAL(10, 2),
-    T INT,
-    monetary_value DECIMAL(10, 2),
-    predicted_purchases_12m DECIMAL(10, 2),
-    predicted_clv_12m DECIMAL(12, 2),
-    clv_segment VARCHAR(20),
-    prediction_date DATE NOT NULL,
-    INDEX idx_clv (predicted_clv_12m DESC),
-    INDEX idx_segment (clv_segment)
+    customer_segment VARCHAR(50),
+    value_tier VARCHAR(50),
+    days_since_last_purchase INT,
+    total_orders INT,
+    total_spent DECIMAL(14, 2),
+    rfm_score VARCHAR(5),
+    rfm_total INT,
+    predicted_clv_12m DECIMAL(14, 2),
+    clv_segment VARCHAR(50),
+    clv_tier VARCHAR(50),
+    expected_purchases_next_12m DECIMAL(10, 4),
+    avg_order_value DECIMAL(14, 2),
+    churn_risk_score DECIMAL(6, 5),
+    risk_level VARCHAR(20),
+    predicted_churn INT,
+    country VARCHAR(100),
+    first_purchase_date DATE,
+    customer_tenure_days INT,
+    strategic_segment VARCHAR(100),
+    snapshot_date DATE
 );
 
--- ============================================================
--- Verification queries
--- ============================================================
-SELECT '✅ All tables created successfully!' AS Status;
+-- ============================================================================
+-- 16. DATA VALIDATION
+-- ============================================================================
+SELECT '✅ All 15 tables created successfully!' AS Status;
 
--- Show all tables
 SHOW TABLES;

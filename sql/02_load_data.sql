@@ -1,421 +1,335 @@
--- ============================================================
+-- ============================================================================
 -- SQL Script 02: Load Data
--- Purpose: Import processed data from CSV files into tables
--- ============================================================
-
+-- ============================================================================
 USE retail_analytics;
 
+-- ---------------------------
+-- 1. FACT TABLE
+-- ---------------------------
 LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/cleaned_transactions.csv' INTO
-TABLE online_retail FIELDS TERMINATED BY ',' ENCLOSED BY '"' LINES TERMINATED BY '\n' IGNORE 1 ROWS (
-    invoice,
-    stockcode,
-    `description`,
-    quantity,
-    invoicedate,
-    price,
-    customer_id,
-    country,
-    total_price,
-    `year`,
-    `month`,
-    month_name,
-    `day`,
-    `hour`,
-    day_of_week,
-    `year_month`
-);
+TABLE fact_transactions FIELDS TERMINATED BY ',' ENCLOSED BY '"' LINES TERMINATED BY '\n' IGNORE 1 ROWS (
+    @invoice,
+    @stockcode,
+    @description,
+    @quantity,
+    @invoicedate,
+    @price,
+    @customer_id,
+    @country,
+    @total_price,
+    @year,
+    @month,
+    @month_name,
+    @day,
+    @hour,
+    @day_of_week,
+    @year_month,
+    @transaction_type,
+    @is_test_transaction,
+    @customer_type
+)
+SET
+    invoice = NULLIF(@invoice, ''),
+    stockcode = NULLIF(@stockcode, ''),
+    description = NULLIF(@description, ''),
+    quantity = NULLIF(@quantity, ''),
+    invoicedate = STR_TO_DATE(
+        @invoicedate,
+        '%Y-%m-%d %H:%i:%s'
+    ),
+    price = NULLIF(@price, ''),
+    customer_id = NULLIF(@customer_id, ''),
+    country = NULLIF(@country, ''),
+    total_price = NULLIF(@total_price, ''),
+    year = NULLIF(@year, ''),
+    month = NULLIF(@month, ''),
+    month_name = NULLIF(@month_name, ''),
+    day = NULLIF(@day, ''),
+    hour = NULLIF(@hour, ''),
+    day_of_week = NULLIF(@day_of_week, ''),
+    `year_month` = NULLIF(@year_month, ''),
+    transaction_type = NULLIF(@transaction_type, ''),
+    is_test_transaction = CASE
+        WHEN @is_test_transaction = 'True' THEN 1
+        WHEN @is_test_transaction = 'False' THEN 0
+        ELSE 0
+    END,
+    customer_type = NULLIF(@customer_type, '');
 
--- Verify load
-SELECT COUNT(*) AS transactions_loaded FROM online_retail;
+SELECT COUNT(*) AS transactions_loaded FROM fact_transactions;
 
--- ============================================================
--- 2. LOAD RFM CUSTOMER SCORES
--- ============================================================
+-- ---------------------------
+-- 2. PRODUCT DIMENSION
+-- ---------------------------
+LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/dim_product.csv' INTO
+TABLE dim_product FIELDS TERMINATED BY ',' ENCLOSED BY '"' LINES TERMINATED BY '\n' IGNORE 1 ROWS (
+    @stockcode,
+    @description,
+    @product_category
+)
+SET
+    stockcode = NULLIF(@stockcode, ''),
+    description = NULLIF(@description, ''),
+    product_category = NULLIF(@product_category, '');
 
-LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/rfm_customer_scores.csv' INTO
-TABLE rfm_customer_scores FIELDS TERMINATED BY ',' ENCLOSED BY '"' LINES TERMINATED BY '\n' IGNORE 1 ROWS (
-    customer_id,
-    recency,
-    frequency,
-    monetary,
-    r_score,
-    f_score,
-    m_score,
-    rfm_score,
-    rfm_total,
-    customer_segment
-);
+SELECT COUNT(*) AS products_loaded FROM dim_product;
 
--- Verify load
-SELECT COUNT(*) AS rfm_customers_loaded FROM rfm_customer_scores;
+-- ---------------------------
+-- 3. DATE DIMENSION
+-- ---------------------------
+LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/dim_date.csv' INTO
+TABLE dim_date FIELDS TERMINATED BY ',' ENCLOSED BY '"' LINES TERMINATED BY '\n' IGNORE 1 ROWS (
+    @date_key,
+    @full_date,
+    @year,
+    @quarter,
+    @month,
+    @month_name,
+    @day,
+    @day_of_week,
+    @day_name,
+    @week_of_year,
+    @is_weekend,
+    @year_month,
+    @year_quarter
+)
+SET
+    date_key = NULLIF(@date_key, ''),
+    full_date = STR_TO_DATE(@full_date, '%Y%m%d'), -- Changed from '%Y-%m-%d' to '%Y%m%d'
+    year = NULLIF(@year, ''),
+    quarter = NULLIF(@quarter, ''),
+    month = NULLIF(@month, ''),
+    month_name = NULLIF(@month_name, ''),
+    day = NULLIF(@day, ''),
+    day_of_week = NULLIF(@day_of_week, ''),
+    day_name = NULLIF(@day_name, ''),
+    week_of_year = NULLIF(@week_of_year, ''),
+    is_weekend = CASE
+        WHEN @is_weekend = 'True' THEN 1
+        WHEN @is_weekend = 'False' THEN 0
+        ELSE 0
+    END,
+    `year_month` = NULLIF(@year_month, ''),
+    year_quarter = NULLIF(@year_quarter, '');
 
--- ============================================================
--- 3. LOAD/UPDATE SEGMENT KPIs
--- ============================================================
+SELECT COUNT(*) AS dates_loaded FROM dim_date;
 
--- Clear existing data
-TRUNCATE TABLE segment_kpis;
+-- ---------------------------
+-- 4. CUSTOMER DIMENSION
+-- ---------------------------
+LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/dim_customer.csv' INTO
+TABLE dim_customer FIELDS TERMINATED BY ',' ENCLOSED BY '"' LINES TERMINATED BY '\n' IGNORE 1 ROWS (
+    @customer_id,
+    @customer_segment,
+    @value_tier,
+    @days_since_last_purchase,
+    @total_orders,
+    @total_spent,
+    @r_score,
+    @f_score,
+    @m_score,
+    @rfm_score,
+    @rfm_total,
+    @first_purchase_date,
+    @customer_tenure_days,
+    @customer_tenure_months
+)
+SET
+    customer_id = NULLIF(@customer_id, ''),
+    customer_segment = NULLIF(@customer_segment, ''),
+    value_tier = NULLIF(@value_tier, ''),
+    days_since_last_purchase = NULLIF(@days_since_last_purchase, ''),
+    total_orders = NULLIF(@total_orders, ''),
+    total_spent = NULLIF(@total_spent, ''),
+    r_score = NULLIF(@r_score, ''),
+    f_score = NULLIF(@f_score, ''),
+    m_score = NULLIF(@m_score, ''),
+    rfm_score = NULLIF(@rfm_score, ''),
+    rfm_total = NULLIF(@rfm_total, ''),
+    first_purchase_date = DATE(
+        STR_TO_DATE(
+            @first_purchase_date,
+            '%Y-%m-%d %H:%i:%s'
+        )
+    ),
+    customer_tenure_days = NULLIF(@customer_tenure_days, ''),
+    customer_tenure_months = NULLIF(@customer_tenure_months, '');
 
--- Insert from RFM scores with aggregations
-INSERT INTO
-    segment_kpis (
-        customer_segment,
-        customer_count,
-        avg_recency,
-        avg_frequency,
-        avg_monetary,
-        total_revenue,
-        revenue_percentage
-    )
-SELECT
-    customer_segment,
-    COUNT(*) AS customer_count,
-    ROUND(AVG(recency), 2) AS avg_recency,
-    ROUND(AVG(frequency), 2) AS avg_frequency,
-    ROUND(AVG(monetary), 2) AS avg_monetary,
-    ROUND(SUM(monetary), 2) AS total_revenue,
-    ROUND(
-        SUM(monetary) * 100.0 / (
-            SELECT SUM(monetary)
-            FROM rfm_customer_scores
-        ),
-        2
-    ) AS revenue_percentage
-FROM rfm_customer_scores
-GROUP BY
-    customer_segment;
+SELECT COUNT(*) AS customers_loaded FROM dim_customer;
 
--- ============================================================
--- 4. LOAD MONTHLY REVENUE (from transactions table)
--- ============================================================
+-- ---------------------------
+-- 5. CUSTOMER CLV DIMENSION
+-- ---------------------------
+LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/dim_customer_clv.csv' INTO
+TABLE dim_customer_clv FIELDS TERMINATED BY ',' ENCLOSED BY '"' LINES TERMINATED BY '\n' IGNORE 1 ROWS (
+    @customer_id,
+    @predicted_clv_12m,
+    @clv_segment,
+    @clv_tier,
+    @expected_purchases_next_12m,
+    @historical_frequency,
+    @recency_days,
+    @customer_age_days,
+    @avg_order_value,
+    @clv_percentile,
+    @clv_score
+)
+SET
+    customer_id = NULLIF(@customer_id, ''),
+    predicted_clv_12m = NULLIF(@predicted_clv_12m, ''),
+    clv_segment = NULLIF(@clv_segment, ''),
+    clv_tier = NULLIF(@clv_tier, ''),
+    expected_purchases_next_12m = NULLIF(
+        @expected_purchases_next_12m,
+        ''
+    ),
+    historical_frequency = NULLIF(@historical_frequency, ''),
+    recency_days = NULLIF(@recency_days, ''),
+    customer_age_days = NULLIF(@customer_age_days, ''),
+    avg_order_value = NULLIF(@avg_order_value, ''),
+    clv_percentile = NULLIF(@clv_percentile, ''),
+    clv_score = NULLIF(@clv_score, '');
 
-TRUNCATE TABLE monthly_revenue;
+SELECT COUNT(*) AS clv_customers_loaded FROM dim_customer_clv;
 
-INSERT INTO
-    monthly_revenue (
-        `year_month`,
-        total_revenue,
-        total_orders,
-        unique_customers,
-        avg_order_value
-    )
-SELECT
-    `year_month`,
-    ROUND(SUM(total_price), 2) AS total_revenue,
-    COUNT(DISTINCT invoice) AS total_orders,
-    COUNT(DISTINCT customer_id) AS unique_customers,
-    ROUND(
-        SUM(total_price) / COUNT(DISTINCT invoice),
-        2
-    ) AS avg_order_value
-FROM online_retail
-GROUP BY
-    `year_month`
-ORDER BY `year_month`;
-
--- ============================================================
--- 5. LOAD PRODUCT PERFORMANCE
--- ============================================================
-
-TRUNCATE TABLE product_performance;
-
-INSERT INTO
-    product_performance (
-        stockcode,
-        description,
-        total_quantity_sold,
-        total_revenue,
-        avg_price,
-        number_of_orders,
-        unique_customers
-    )
-SELECT
-    stockcode,
-    MAX(description) AS description,
-    SUM(quantity) AS total_quantity_sold,
-    ROUND(SUM(total_price), 2) AS total_revenue,
-    ROUND(AVG(price), 2) AS avg_price,
-    COUNT(DISTINCT invoice) AS number_of_orders,
-    COUNT(DISTINCT customer_id) AS unique_customers
-FROM online_retail
-WHERE
-    description IS NOT NULL
-    AND description != ''
-GROUP BY
-    stockcode
-ORDER BY total_revenue DESC;
-
--- ============================================================
--- 6. LOAD COUNTRY PERFORMANCE
--- ============================================================
-
-TRUNCATE TABLE country_performance;
-
-INSERT INTO
-    country_performance (
-        country,
-        total_revenue,
-        total_orders,
-        unique_customers,
-        avg_order_value,
-        revenue_percentage
-    )
-SELECT
-    country,
-    ROUND(SUM(total_price), 2) AS total_revenue,
-    COUNT(DISTINCT invoice) AS total_orders,
-    COUNT(DISTINCT customer_id) AS unique_customers,
-    ROUND(
-        SUM(total_price) / COUNT(DISTINCT invoice),
-        2
-    ) AS avg_order_value,
-    ROUND(
-        SUM(total_price) * 100.0 / (
-            SELECT SUM(total_price)
-            FROM online_retail
-        ),
-        2
-    ) AS revenue_percentage
-FROM online_retail
-GROUP BY
-    country
-ORDER BY total_revenue DESC;
-
--- ============================================================
--- 7. LOAD CHURN PREDICTIONS
--- ============================================================
-
-LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/high_risk_active_customers.csv' INTO
-TABLE churn_predictions FIELDS TERMINATED BY ',' ENCLOSED BY '"' LINES TERMINATED BY '\n' IGNORE 1 ROWS (
+-- ---------------------------
+-- 6. CUSTOMER RISK DIMENSION
+-- ---------------------------
+LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/dim_customer_risk.csv' INTO
+TABLE dim_customer_risk FIELDS TERMINATED BY ',' ENCLOSED BY '"' LINES TERMINATED BY '\n' IGNORE 1 ROWS (
     @customer_id,
     @churn_risk_score,
+    @risk_level,
+    @risk_bucket,
     @predicted_churn,
-    @days_since_last,
-    @churned,
-    @total_price_total_spent,
-    @invoice_total_orders
+    @actual_churned
 )
 SET
-    customer_id = @customer_id,
-    churn_risk_score = @churn_risk_score,
-    days_since_last = @days_since_last,
-    predicted_churn = (
-        @predicted_churn = 1
-        OR @predicted_churn = '1'
-    ),
-    churned = @churned,
-    risk_level = CASE
-        WHEN @churn_risk_score >= 0.8 THEN 'Very High'
-        WHEN @churn_risk_score >= 0.6 THEN 'High'
-        WHEN @churn_risk_score >= 0.4 THEN 'Medium'
-        ELSE 'Low'
+    customer_id = NULLIF(@customer_id, ''),
+    churn_risk_score = NULLIF(@churn_risk_score, ''),
+    risk_level = NULLIF(@risk_level, ''),
+    risk_bucket = CASE
+        WHEN NULLIF(@risk_bucket, '') IS NULL THEN 'Unknown'
+        ELSE NULLIF(@risk_bucket, '')
     END,
-    prediction_date = CURDATE(),
-    model_version = 'random_forest_v1';
--- ============================================================
--- 8. LOAD CLV PREDICTIONS
--- ============================================================
+    predicted_churn = NULLIF(@predicted_churn, ''),
+    actual_churned = NULLIF(@actual_churned, '');
 
-LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/customer_clv.csv' INTO
-TABLE clv_predictions FIELDS TERMINATED BY ',' ENCLOSED BY '"' LINES TERMINATED BY '\r\n' IGNORE 1 ROWS (
-    customer_id,
-    frequency,
-    recency,
-    T,
-    monetary_value,
-    predicted_purchases_12m,
-    predicted_clv_12m,
-    clv_segment
-)
-SET
-    prediction_date = CURDATE();
+SELECT COUNT(*) AS risk_customers_loaded FROM dim_customer_risk;
 
--- ============================================================
--- 9. LOAD A/B TEST RESULTS
--- ============================================================
+-- ---------------------------
+-- 7. SEGMENT KPIs
+-- ---------------------------
+LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/segment_kpis.csv' INTO
+TABLE segment_kpis FIELDS TERMINATED BY ',' ENCLOSED BY '"' LINES TERMINATED BY '\n' IGNORE 1 ROWS;
 
--- This would typically be inserted manually or from your simulation results
-INSERT INTO
-    ab_test_results (
-        test_name,
-        test_start_date,
-        test_end_date,
-        control_group_size,
-        test_group_size,
-        control_conversion_rate,
-        test_conversion_rate,
-        p_value,
-        is_significant,
-        lift_percentage,
-        recommended_action
-    )
-VALUES (
-        'Re-engagement Campaign - 15% Discount',
-        DATE_SUB(CURDATE(), INTERVAL 30 DAY),
-        DATE_SUB(CURDATE(), INTERVAL 16 DAY),
-        637,
-        648,
-        0.04396,
-        0.08025,
-        0.00998,
-        TRUE,
-        82.56,
-        'DEPLOY - Significant conversion lift with positive ROI'
-    );
+SELECT COUNT(*) AS segments_loaded FROM segment_kpis;
 
--- ============================================================
--- 10. UPDATE DAILY KPI SNAPSHOT (for time-series)
--- ============================================================
+-- ---------------------------
+-- 8. MONTHLY SEGMENT REVENUE
+-- ---------------------------
+LOAD DATA INFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/monthly_segment_revenue.csv' INTO
+TABLE monthly_segment_revenue FIELDS TERMINATED BY ',' ENCLOSED BY '"' LINES TERMINATED BY '\n' IGNORE 1 ROWS;
+
+SELECT COUNT(*) AS monthly_segments_loaded
+FROM monthly_segment_revenue;
+
+-- ---------------------------
+-- 9. BUILD CUSTOMER 360 VIEW
+-- ---------------------------
+TRUNCATE TABLE customer_360_view;
 
 INSERT INTO
-    daily_kpi_snapshot (
-        snapshot_date,
-        total_revenue,
-        total_orders,
-        unique_customers,
-        avg_order_value
-    )
+    customer_360_view
 SELECT
-    CURDATE() - INTERVAL 1 DAY AS snapshot_date,
-    ROUND(
-        SUM(
-            CASE
-                WHEN DATE(invoicedate) = CURDATE() - INTERVAL 1 DAY THEN total_price
-                ELSE 0
-            END
-        ),
-        2
-    ) AS total_revenue,
-    COUNT(
-        DISTINCT CASE
-            WHEN DATE(invoicedate) = CURDATE() - INTERVAL 1 DAY THEN invoice
-        END
-    ) AS total_orders,
-    COUNT(
-        DISTINCT CASE
-            WHEN DATE(invoicedate) = CURDATE() - INTERVAL 1 DAY THEN customer_id
-        END
-    ) AS unique_customers,
-    ROUND(
-        SUM(
-            CASE
-                WHEN DATE(invoicedate) = CURDATE() - INTERVAL 1 DAY THEN total_price
-                ELSE 0
-            END
-        ) / NULLIF(
-            COUNT(
-                DISTINCT CASE
-                    WHEN DATE(invoicedate) = CURDATE() - INTERVAL 1 DAY THEN invoice
-                END
-            ),
-            0
-        ),
-        2
-    ) AS avg_order_value
-FROM online_retail
-ON DUPLICATE KEY UPDATE
-    total_revenue = VALUES(total_revenue),
-    total_orders = VALUES(total_orders),
-    unique_customers = VALUES(unique_customers),
-    avg_order_value = VALUES(avg_order_value);
+    customer_id,
+    customer_segment,
+    value_tier,
+    days_since_last_purchase,
+    total_orders,
+    total_spent,
+    rfm_score,
+    rfm_total,
+    predicted_clv_12m,
+    clv_segment,
+    clv_tier,
+    expected_purchases_next_12m,
+    avg_order_value,
+    churn_risk_score,
+    risk_level,
+    predicted_churn,
+    country,
+    first_purchase_date,
+    customer_tenure_days,
+    strategic_segment,
+    snapshot_date
+FROM (
+        SELECT
+            c.customer_id, c.customer_segment, c.value_tier, c.days_since_last_purchase, c.total_orders, c.total_spent, c.rfm_score, c.rfm_total, cl.predicted_clv_12m, cl.clv_segment, cl.clv_tier, cl.expected_purchases_next_12m, cl.avg_order_value, cr.churn_risk_score, cr.risk_level, cr.predicted_churn, f.country, c.first_purchase_date, c.customer_tenure_days, CASE
+                WHEN cl.clv_tier IN (
+                    'Premium Value (>$5,000)', 'High Value ($1,500-$5,000)'
+                )
+                AND cr.risk_level IN ('Critical', 'High') THEN 'CRITICAL: High-Value At Risk'
+                WHEN cl.clv_tier IN (
+                    'Premium Value (>$5,000)', 'High Value ($1,500-$5,000)'
+                ) THEN 'NURTURE: High-Value Loyal'
+                WHEN cl.clv_tier = 'Medium Value ($500-$1,500)'
+                AND cr.risk_level IN ('Critical', 'High') THEN 'ACT NOW: Medium-Value At Risk'
+                WHEN cl.clv_tier = 'Medium Value ($500-$1,500)' THEN 'GROW: Medium-Value Potential'
+                WHEN cr.risk_level IN ('Critical', 'High') THEN 'MONITOR: Low-Value At Risk'
+                ELSE 'AUTOMATE: Low-Value'
+            END AS strategic_segment, CURDATE() AS snapshot_date, ROW_NUMBER() OVER (
+                PARTITION BY
+                    c.customer_id
+                ORDER BY c.customer_id
+            ) AS rn
+        FROM
+            dim_customer c
+            LEFT JOIN dim_customer_clv cl ON c.customer_id = cl.customer_id
+            LEFT JOIN dim_customer_risk cr ON c.customer_id = cr.customer_id
+            LEFT JOIN (
+                SELECT DISTINCT
+                    customer_id, country
+                FROM fact_transactions
+                WHERE
+                    customer_id IS NOT NULL
+            ) f ON c.customer_id = f.customer_id
+        WHERE
+            c.customer_id IS NOT NULL
+    ) AS sub
+WHERE
+    rn = 1;
 
--- ============================================================
--- DATA VALIDATION QUERIES
--- ============================================================
+SELECT COUNT(*) AS customer_360_loaded FROM customer_360_view;
 
--- Show row counts for all tables
-SELECT 'online_retail' AS table_name, COUNT(*) AS row_count
-FROM online_retail
+-- ---------------------------
+-- 10. FINAL VALIDATION
+-- ---------------------------
+SELECT 'fact_transactions' AS table_name, COUNT(*) AS row_count
+FROM fact_transactions
 UNION ALL
-SELECT 'rfm_customer_scores', COUNT(*)
-FROM rfm_customer_scores
+SELECT 'dim_product', COUNT(*)
+FROM dim_product
+UNION ALL
+SELECT 'dim_date', COUNT(*)
+FROM dim_date
+UNION ALL
+SELECT 'dim_customer', COUNT(*)
+FROM dim_customer
+UNION ALL
+SELECT 'dim_customer_clv', COUNT(*)
+FROM dim_customer_clv
+UNION ALL
+SELECT 'dim_customer_risk', COUNT(*)
+FROM dim_customer_risk
 UNION ALL
 SELECT 'segment_kpis', COUNT(*)
 FROM segment_kpis
 UNION ALL
-SELECT 'monthly_revenue', COUNT(*)
-FROM monthly_revenue
+SELECT 'monthly_segment_revenue', COUNT(*)
+FROM monthly_segment_revenue
 UNION ALL
-SELECT 'product_performance', COUNT(*)
-FROM product_performance
-UNION ALL
-SELECT 'country_performance', COUNT(*)
-FROM country_performance
-UNION ALL
-SELECT 'churn_predictions', COUNT(*)
-FROM churn_predictions
-UNION ALL
-SELECT 'clv_predictions', COUNT(*)
-FROM clv_predictions
-UNION ALL
-SELECT 'ab_test_results', COUNT(*)
-FROM ab_test_results;
+SELECT 'customer_360_view', COUNT(*)
+FROM customer_360_view;
 
--- Show recent activity summary
-SELECT
-    'Data loaded successfully!' AS status,
-    NOW() AS load_timestamp,
-    (
-        SELECT COUNT(*)
-        FROM online_retail
-    ) AS transactions,
-    (
-        SELECT COUNT(*)
-        FROM rfm_customer_scores
-    ) AS customers_analyzed;
-
--- ============================================================
--- CREATE VIEWS FOR EASY DASHBOARD CONNECTION
--- ============================================================
-
--- Customer 360 view
-CREATE OR REPLACE VIEW v_customer_360 AS
-SELECT o.customer_id, o.country, r.recency, r.frequency, r.monetary, r.r_score, r.f_score, r.m_score, r.rfm_score, r.customer_segment, c.churn_risk_score, c.risk_level, cl.predicted_clv_12m, cl.clv_segment, o.year_month
-FROM
-    online_retail o
-    LEFT JOIN rfm_customer_scores r ON o.customer_id = r.customer_id
-    LEFT JOIN churn_predictions c ON o.customer_id = c.customer_id
-    AND c.prediction_date = (
-        SELECT MAX(prediction_date)
-        FROM churn_predictions
-    )
-    LEFT JOIN clv_predictions cl ON o.customer_id = cl.customer_id;
-
--- Dashboard summary view
-CREATE OR REPLACE VIEW v_dashboard_summary AS
-SELECT (
-        SELECT ROUND(SUM(total_price), 2)
-        FROM online_retail
-    ) AS total_revenue,
-    (
-        SELECT COUNT(DISTINCT invoice)
-        FROM online_retail
-    ) AS total_orders,
-    (
-        SELECT COUNT(DISTINCT customer_id)
-        FROM online_retail
-    ) AS total_customers,
-    (
-        SELECT COUNT(*)
-        FROM rfm_customer_scores
-        WHERE
-            customer_segment = 'Champions'
-    ) AS champions_count,
-    (
-        SELECT ROUND(SUM(monetary), 2)
-        FROM rfm_customer_scores
-        WHERE
-            customer_segment = 'Champions'
-    ) AS champions_revenue,
-    (
-        SELECT COUNT(*)
-        FROM churn_predictions
-        WHERE
-            risk_level IN ('High', 'Very High')
-            AND prediction_date = (
-                SELECT MAX(prediction_date)
-                FROM churn_predictions
-            )
-    ) AS high_risk_customers;
-
-SELECT '✅ Data loading complete! Ready for Power BI dashboard.' AS message;
+SELECT '✅ Data loading complete!' AS Status, NOW() AS load_timestamp;

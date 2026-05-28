@@ -1,34 +1,46 @@
 -- ============================================================
 -- SQL Script 03: Business KPI Queries
--- Purpose: Calculate key business metrics for dashboard
 -- ============================================================
 
 -- ============================================================
--- 1. OVERALL BUSINESS KPIs
+-- 1. OVERALL BUSINESS KPIs (from fact table)
 -- ============================================================
 
--- Total Revenue, Orders, Customers, AOV
 SELECT
     ROUND(SUM(total_price), 2) AS total_revenue,
     COUNT(DISTINCT invoice) AS total_orders,
     COUNT(DISTINCT customer_id) AS total_customers,
     ROUND(
-        SUM(total_price) / COUNT(DISTINCT invoice),
+        SUM(total_price) / NULLIF(COUNT(DISTINCT invoice), 0),
         2
     ) AS avg_order_value,
     ROUND(
-        SUM(total_price) / COUNT(DISTINCT customer_id),
+        SUM(total_price) / NULLIF(
+            COUNT(DISTINCT customer_id),
+            0
+        ),
         2
     ) AS revenue_per_customer,
     MIN(invoicedate) AS first_transaction,
     MAX(invoicedate) AS last_transaction
-FROM online_retail;
+FROM fact_transactions;
 
 -- ============================================================
--- 2. MONTHLY REVENUE TRENDS
+-- 2. REVENUE METRICS (from dedicated table)
 -- ============================================================
 
--- Monthly revenue with growth rate
+SELECT *
+FROM revenue_metrics
+WHERE
+    snapshot_date = (
+        SELECT MAX(snapshot_date)
+        FROM revenue_metrics
+    );
+
+-- ============================================================
+-- 3. MONTHLY REVENUE TRENDS
+-- ============================================================
+
 WITH
     monthly_data AS (
         SELECT
@@ -36,7 +48,7 @@ WITH
             ROUND(SUM(total_price), 2) AS revenue,
             COUNT(DISTINCT invoice) AS orders,
             COUNT(DISTINCT customer_id) AS customers
-        FROM online_retail
+        FROM fact_transactions
         GROUP BY
             `year_month`
     )
@@ -56,8 +68,11 @@ SELECT
             revenue - LAG(revenue) OVER (
                 ORDER BY `year_month`
             )
-        ) / LAG(revenue) OVER (
-            ORDER BY `year_month`
+        ) / NULLIF(
+            LAG(revenue) OVER (
+                ORDER BY `year_month`
+            ),
+            0
         ) * 100,
         2
     ) AS revenue_growth_pct
@@ -65,405 +80,281 @@ FROM monthly_data
 ORDER BY `year_month`;
 
 -- ============================================================
--- 3. HOURLY SALES PATTERNS
+-- 4. RFM SEGMENT DISTRIBUTION (from dim_customer)
 -- ============================================================
 
--- Revenue by hour of day
-SELECT
-    hour,
-    ROUND(SUM(total_price), 2) AS total_revenue,
-    COUNT(DISTINCT invoice) AS orders,
-    COUNT(*) AS transactions,
-    ROUND(AVG(total_price), 2) AS avg_transaction_value
-FROM online_retail
-GROUP BY
-    hour
-ORDER BY hour;
-
--- Peak hours (top 5 by revenue)
-SELECT hour, ROUND(SUM(total_price), 2) AS total_revenue
-FROM online_retail
-GROUP BY
-    hour
-ORDER BY total_revenue DESC
-LIMIT 5;
-
--- ============================================================
--- 4. WEEKDAY SALES PATTERNS
--- ============================================================
-
--- Revenue by day of week
-SELECT
-    day_of_week,
-    CASE day_of_week
-        WHEN 'Monday' THEN 1
-        WHEN 'Tuesday' THEN 2
-        WHEN 'Wednesday' THEN 3
-        WHEN 'Thursday' THEN 4
-        WHEN 'Friday' THEN 5
-        WHEN 'Saturday' THEN 6
-        WHEN 'Sunday' THEN 7
-    END AS day_order,
-    ROUND(SUM(total_price), 2) AS total_revenue,
-    COUNT(DISTINCT invoice) AS orders,
-    COUNT(DISTINCT customer_id) AS customers
-FROM online_retail
-GROUP BY
-    day_of_week
-ORDER BY day_order;
-
--- ============================================================
--- 5. COUNTRY PERFORMANCE
--- ============================================================
-
--- Top countries by revenue (excluding UK as it dominates)
-SELECT
-    country,
-    ROUND(SUM(total_price), 2) AS total_revenue,
-    COUNT(DISTINCT invoice) AS orders,
-    COUNT(DISTINCT customer_id) AS customers,
-    ROUND(
-        SUM(total_price) / COUNT(DISTINCT invoice),
-        2
-    ) AS avg_order_value,
-    ROUND(
-        SUM(total_price) * 100.0 / (
-            SELECT SUM(total_price)
-            FROM online_retail
-        ),
-        2
-    ) AS revenue_percentage
-FROM online_retail
-WHERE
-    country != 'United Kingdom'
-GROUP BY
-    country
-ORDER BY total_revenue DESC
-LIMIT 10;
-
--- All countries summary
-SELECT
-    country,
-    ROUND(SUM(total_price), 2) AS total_revenue,
-    COUNT(DISTINCT customer_id) AS customers
-FROM online_retail
-GROUP BY
-    country
-ORDER BY total_revenue DESC;
-
--- ============================================================
--- 6. PRODUCT PERFORMANCE
--- ============================================================
-
--- Top 10 products by revenue
-SELECT
-    stockcode,
-    LEFT(description, 60) AS description,
-    ROUND(SUM(total_price), 2) AS total_revenue,
-    SUM(quantity) AS total_quantity_sold,
-    COUNT(DISTINCT invoice) AS number_of_orders,
-    COUNT(DISTINCT customer_id) AS unique_customers,
-    ROUND(AVG(price), 2) AS avg_price
-FROM online_retail
-WHERE
-    description IS NOT NULL
-    AND description != ''
-GROUP BY
-    stockcode,
-    description
-ORDER BY total_revenue DESC
-LIMIT 10;
-
--- Top 10 products by quantity sold
-SELECT
-    stockcode,
-    LEFT(description, 60) AS description,
-    SUM(quantity) AS total_quantity_sold,
-    ROUND(SUM(total_price), 2) AS total_revenue
-FROM online_retail
-WHERE
-    description IS NOT NULL
-    AND description != ''
-GROUP BY
-    stockcode,
-    description
-ORDER BY total_quantity_sold DESC
-LIMIT 10;
-
--- ============================================================
--- 7. CUSTOMER VALUE ANALYSIS
--- ============================================================
-
--- Customer value tiers
-SELECT
-    CASE
-        WHEN total_spent < 100 THEN 'Bronze (<$100)'
-        WHEN total_spent < 500 THEN 'Silver ($100-$500)'
-        WHEN total_spent < 1000 THEN 'Gold ($500-$1000)'
-        WHEN total_spent < 5000 THEN 'Platinum ($1000-$5000)'
-        ELSE 'Diamond (>$5000)'
-    END AS customer_tier,
-    COUNT(*) AS customer_count,
-    ROUND(AVG(total_spent), 2) AS avg_spent,
-    ROUND(SUM(total_spent), 2) AS total_revenue,
-    ROUND(AVG(order_count), 1) AS avg_orders,
-    ROUND(AVG(avg_order_value), 2) AS avg_order_value
-FROM (
-        SELECT
-            customer_id, SUM(total_price) AS total_spent, COUNT(DISTINCT invoice) AS order_count, AVG(total_price) AS avg_order_value
-        FROM online_retail
-        GROUP BY
-            customer_id
-    ) AS customer_stats
-GROUP BY
-    customer_tier
-ORDER BY MIN(total_spent);
-
--- Top 20 customers by total spend
-SELECT
-    customer_id,
-    ROUND(SUM(total_price), 2) AS total_spent,
-    COUNT(DISTINCT invoice) AS order_count,
-    MIN(invoicedate) AS first_purchase,
-    MAX(invoicedate) AS last_purchase,
-    DATEDIFF(
-        MAX(invoicedate),
-        MIN(invoicedate)
-    ) AS customer_lifetime_days,
-    ROUND(
-        SUM(total_price) / COUNT(DISTINCT invoice),
-        2
-    ) AS avg_order_value
-FROM online_retail
-GROUP BY
-    customer_id
-ORDER BY total_spent DESC
-LIMIT 20;
-
--- ============================================================
--- 8. SEASONALITY ANALYSIS
--- ============================================================
-
--- Monthly seasonality across years
-SELECT
-    month,
-    month_name,
-    ROUND(AVG(revenue), 2) AS avg_monthly_revenue,
-    ROUND(STDDEV(revenue), 2) AS revenue_stddev
-FROM (
-        SELECT YEAR(invoicedate) AS year, MONTH(invoicedate) AS month, month_name, ROUND(SUM(total_price), 2) AS revenue
-        FROM online_retail
-        GROUP BY
-            YEAR(invoicedate), MONTH(invoicedate), month_name
-    ) AS monthly
-GROUP BY
-    month,
-    month_name
-ORDER BY month;
--- ============================================================
--- 9. CUSTOMER RETENTION ANALYSIS
--- ============================================================
-
--- Cohort retention analysis (simplified)
-WITH
-    first_purchases AS (
-        SELECT customer_id, DATE_FORMAT(MIN(invoicedate), '%Y-%m') AS cohort_month
-        FROM online_retail
-        GROUP BY
-            customer_id
-    ),
-    cohort_data AS (
-        SELECT f.cohort_month, DATE_FORMAT(o.invoicedate, '%Y-%m') AS purchase_month, COUNT(DISTINCT o.customer_id) AS customers
-        FROM
-            first_purchases f
-            JOIN online_retail o ON f.customer_id = o.customer_id
-        GROUP BY
-            f.cohort_month,
-            purchase_month
-    )
-SELECT
-    cohort_month,
-    MAX(
-        CASE
-            WHEN purchase_month = cohort_month THEN customers
-        END
-    ) AS month_0,
-    MAX(
-        CASE
-            WHEN purchase_month = DATE_ADD(
-                STR_TO_DATE(
-                    CONCAT(cohort_month, '-01'),
-                    '%Y-%m-%d'
-                ),
-                INTERVAL 1 MONTH
-            ) THEN customers
-        END
-    ) AS month_1,
-    MAX(
-        CASE
-            WHEN purchase_month = DATE_ADD(
-                STR_TO_DATE(
-                    CONCAT(cohort_month, '-01'),
-                    '%Y-%m-%d'
-                ),
-                INTERVAL 2 MONTH
-            ) THEN customers
-        END
-    ) AS month_2,
-    MAX(
-        CASE
-            WHEN purchase_month = DATE_ADD(
-                STR_TO_DATE(
-                    CONCAT(cohort_month, '-01'),
-                    '%Y-%m-%d'
-                ),
-                INTERVAL 3 MONTH
-            ) THEN customers
-        END
-    ) AS month_3
-FROM cohort_data
-GROUP BY
-    cohort_month
-ORDER BY cohort_month;
-
--- ============================================================
--- 10. RFM SEGMENT ANALYSIS (from pre-calculated table)
--- ============================================================
-
--- Segment distribution
 SELECT
     customer_segment,
     COUNT(*) AS customer_count,
     ROUND(
         COUNT(*) * 100.0 / (
             SELECT COUNT(*)
-            FROM rfm_customer_scores
+            FROM dim_customer
         ),
         2
     ) AS percentage,
-    ROUND(AVG(recency), 1) AS avg_recency_days,
-    ROUND(AVG(frequency), 1) AS avg_frequency,
-    ROUND(AVG(monetary), 2) AS avg_monetary
-FROM rfm_customer_scores
+    ROUND(
+        AVG(days_since_last_purchase),
+        1
+    ) AS avg_recency_days,
+    ROUND(AVG(total_orders), 1) AS avg_frequency,
+    ROUND(AVG(total_spent), 2) AS avg_monetary
+FROM dim_customer
 GROUP BY
     customer_segment
 ORDER BY customer_count DESC;
 
--- Champions vs At Risk comparison
+-- ============================================================
+-- 5. SEGMENT KPIs
+-- ============================================================
+
+SELECT * FROM segment_kpis ORDER BY total_revenue DESC;
+
+-- ============================================================
+-- 6. CLV SEGMENT ANALYSIS (from dim_customer_clv)
+-- ============================================================
+
+-- CLV distribution by segment
 SELECT
-    customer_segment,
+    clv_segment,
     COUNT(*) AS customer_count,
-    ROUND(AVG(recency), 1) AS avg_recency,
-    ROUND(AVG(frequency), 1) AS avg_frequency,
-    ROUND(AVG(monetary), 2) AS avg_monetary,
-    ROUND(SUM(monetary), 2) AS total_monetary
-FROM rfm_customer_scores
-WHERE
-    customer_segment IN ('Champions', 'At Risk')
+    ROUND(AVG(predicted_clv_12m), 2) AS avg_clv,
+    ROUND(SUM(predicted_clv_12m), 2) AS total_clv,
+    ROUND(
+        SUM(predicted_clv_12m) * 100.0 / (
+            SELECT SUM(predicted_clv_12m)
+            FROM dim_customer_clv
+        ),
+        2
+    ) AS value_percentage
+FROM dim_customer_clv
 GROUP BY
-    customer_segment
-ORDER BY customer_count DESC;
+    clv_segment
+ORDER BY avg_clv DESC;
+
+-- CLV tier summary (latest snapshot)
+SELECT *
+FROM clv_tier_summary
+WHERE
+    snapshot_date = (
+        SELECT MAX(snapshot_date)
+        FROM clv_tier_summary
+    )
+ORDER BY avg_clv DESC;
 
 -- ============================================================
--- 11. DATA QUALITY CHECKS
+-- 7. CHURN RISK ANALYSIS (from dim_customer_risk)
 -- ============================================================
 
--- Check for missing values
+-- Risk level distribution
 SELECT
-    'customer_id' AS column_name,
-    COUNT(*) - COUNT(customer_id) AS missing_count
-FROM online_retail
-UNION ALL
-SELECT 'description', COUNT(*) - COUNT(description)
-FROM online_retail
-UNION ALL
-SELECT 'country', COUNT(*) - COUNT(country)
-FROM online_retail;
+    risk_level,
+    COUNT(*) AS customer_count,
+    ROUND(AVG(churn_risk_score), 3) AS avg_risk_score
+FROM dim_customer_risk
+GROUP BY
+    risk_level
+ORDER BY
+    CASE risk_level
+        WHEN 'Critical' THEN 1
+        WHEN 'High' THEN 2
+        WHEN 'Medium' THEN 3
+        WHEN 'Low' THEN 4
+        WHEN 'Very Low' THEN 5
+        ELSE 6
+    END;
 
--- Check for negative quantities or prices
+-- High-risk active customers
 SELECT
-    SUM(
-        CASE
-            WHEN quantity < 0 THEN 1
-            ELSE 0
-        END
-    ) AS negative_quantity_count,
-    SUM(
-        CASE
-            WHEN price < 0 THEN 1
-            ELSE 0
-        END
-    ) AS negative_price_count,
-    SUM(
-        CASE
-            WHEN total_price < 0 THEN 1
-            ELSE 0
-        END
-    ) AS negative_total_count
-FROM online_retail;
+    COUNT(*) AS high_risk_active_count,
+    ROUND(SUM(total_spent), 2) AS total_value_at_risk,
+    ROUND(AVG(churn_risk_score), 3) AS avg_risk_score
+FROM high_risk_active_customers;
 
 -- ============================================================
--- 12. BUSINESS INSIGHTS SUMMARY QUERY
+-- 8. CUSTOMER 360 VIEW (Strategic segments)
 -- ============================================================
 
-SELECT '📊 BUSINESS INSIGHTS SUMMARY' AS insight;
+-- Strategic segment distribution
+SELECT
+    strategic_segment,
+    COUNT(*) AS customer_count,
+    ROUND(SUM(total_spent), 2) AS total_revenue,
+    ROUND(AVG(predicted_clv_12m), 2) AS avg_clv,
+    ROUND(AVG(churn_risk_score), 3) AS avg_risk
+FROM customer_360_view
+WHERE
+    snapshot_date = (
+        SELECT MAX(snapshot_date)
+        FROM customer_360_view
+    )
+GROUP BY
+    strategic_segment
+ORDER BY total_revenue DESC;
 
-SELECT CONCAT(
-        'Total Revenue: $', FORMAT(SUM(total_price), 2)
-    ) AS metric
-FROM online_retail
+-- ============================================================
+-- 9. PRODUCT CATEGORY PERFORMANCE
+-- ============================================================
+
+SELECT
+    p.product_category,
+    COUNT(DISTINCT f.invoice) AS order_count,
+    SUM(f.quantity) AS total_quantity_sold,
+    ROUND(SUM(f.total_price), 2) AS total_revenue,
+    COUNT(DISTINCT f.customer_id) AS unique_customers,
+    ROUND(
+        SUM(f.total_price) / NULLIF(COUNT(DISTINCT f.invoice), 0),
+        2
+    ) AS avg_order_value
+FROM
+    fact_transactions f
+    JOIN dim_product p ON f.stockcode = p.stockcode
+WHERE
+    p.product_category IS NOT NULL
+    AND p.product_category != 'Unknown'
+GROUP BY
+    p.product_category
+ORDER BY total_revenue DESC;
+
+-- ============================================================
+-- 10. TIME-BASED CUSTOMER BEHAVIOR (using date dimension)
+-- ============================================================
+
+-- Revenue by day of week
+SELECT
+    d.day_name,
+    ROUND(SUM(f.total_price), 2) AS total_revenue,
+    COUNT(DISTINCT f.invoice) AS orders,
+    ROUND(AVG(f.total_price), 2) AS avg_transaction_value
+FROM
+    fact_transactions f
+    JOIN dim_date d ON f.date_key = d.date_key
+GROUP BY
+    d.day_name,
+    d.day_of_week
+ORDER BY d.day_of_week;
+
+-- Revenue by hour of day
+SELECT
+    f.hour,
+    ROUND(SUM(f.total_price), 2) AS total_revenue,
+    COUNT(DISTINCT f.invoice) AS orders,
+    ROUND(AVG(f.total_price), 2) AS avg_transaction_value
+FROM fact_transactions f
+GROUP BY
+    f.hour
+ORDER BY f.hour;
+
+-- ============================================================
+-- 11. MONTHLY SEGMENT REVENUE TRENDS
+-- ============================================================
+
+SELECT
+    `year_month`,
+    customer_segment,
+    revenue
+FROM monthly_segment_revenue
+ORDER BY `year_month`, revenue DESC;
+
+-- ============================================================
+-- 12. A/B TEST RESULTS (Latest)
+-- ============================================================
+
+SELECT * FROM ab_test_results ORDER BY test_date DESC LIMIT 1;
+
+-- ============================================================
+-- 13. EXECUTIVE DASHBOARD SUMMARY
+-- ============================================================
+
+SELECT '📊 EXECUTIVE SUMMARY' AS section;
+
+SELECT 'Total Revenue' AS metric, CONCAT(
+        '£', FORMAT(SUM(total_price), 2)
+    ) AS value
+FROM fact_transactions
 UNION ALL
-SELECT CONCAT(
-        'Total Orders: ', FORMAT(COUNT(DISTINCT invoice), 0)
+SELECT 'Total Customers', FORMAT(
+        COUNT(DISTINCT customer_id), 0
     )
-FROM online_retail
+FROM fact_transactions
 UNION ALL
-SELECT CONCAT(
-        'Unique Customers: ', FORMAT(
-            COUNT(DISTINCT customer_id), 0
+SELECT 'Avg Order Value', CONCAT(
+        '£', FORMAT(
+            SUM(total_price) / NULLIF(COUNT(DISTINCT invoice), 0), 2
         )
     )
-FROM online_retail
+FROM fact_transactions
 UNION ALL
-SELECT CONCAT(
-        'Average Order Value: $', FORMAT(
-            SUM(total_price) / COUNT(DISTINCT invoice), 2
-        )
-    )
-FROM online_retail
+SELECT 'Champions', FORMAT(COUNT(*), 0)
+FROM dim_customer
+WHERE
+    customer_segment = 'Champions'
 UNION ALL
-SELECT CONCAT(
-        'Top Country: ', (
-            SELECT country
-            FROM online_retail
-            GROUP BY
-                country
-            ORDER BY SUM(total_price) DESC
-            LIMIT 1
-        )
+SELECT 'High-Risk Customers', FORMAT(COUNT(*), 0)
+FROM dim_customer_risk
+WHERE
+    risk_level IN ('Critical', 'High')
+    AND prediction_date = (
+        SELECT MAX(prediction_date)
+        FROM dim_customer_risk
     )
-FROM online_retail
 UNION ALL
-SELECT CONCAT(
-        'Peak Sales Hour: ', (
-            SELECT hour
-            FROM online_retail
-            GROUP BY
-                hour
-            ORDER BY SUM(total_price) DESC
-            LIMIT 1
-        ), ':00'
+SELECT 'Total Predicted CLV', CONCAT(
+        '£', FORMAT(SUM(predicted_clv_12m), 2)
     )
-FROM online_retail
+FROM dim_customer_clv;
+
+-- ============================================================
+-- 14. DATA QUALITY CHECKS
+-- ============================================================
+
+SELECT 'DATA QUALITY CHECK' AS check_type;
+
+SELECT
+    'fact_transactions' AS table_name,
+    COUNT(*) AS total_rows,
+    SUM(
+        CASE
+            WHEN customer_id IS NULL THEN 1
+            ELSE 0
+        END
+    ) AS null_customers,
+    SUM(
+        CASE
+            WHEN stockcode IS NULL THEN 1
+            ELSE 0
+        END
+    ) AS null_products,
+    SUM(
+        CASE
+            WHEN total_price <= 0 THEN 1
+            ELSE 0
+        END
+    ) AS invalid_prices
+FROM fact_transactions
 UNION ALL
-SELECT CONCAT(
-        'Top Product: ', (
-            SELECT description
-            FROM online_retail
-            GROUP BY
-                description
-            ORDER BY SUM(total_price) DESC
-            LIMIT 1
-        )
-    )
-FROM online_retail;
+SELECT 'dim_customer', COUNT(*), SUM(
+        CASE
+            WHEN customer_segment IS NULL THEN 1
+            ELSE 0
+        END
+    ), 0, 0
+FROM dim_customer
+UNION ALL
+SELECT 'dim_customer_clv', COUNT(*), SUM(
+        CASE
+            WHEN predicted_clv_12m IS NULL THEN 1
+            ELSE 0
+        END
+    ), 0, 0
+FROM dim_customer_clv
+UNION ALL
+SELECT 'dim_customer_risk', COUNT(*), SUM(
+        CASE
+            WHEN churn_risk_score IS NULL THEN 1
+            ELSE 0
+        END
+    ), 0, 0
+FROM dim_customer_risk;
+
+SELECT '✅ All queries ready for Power BI dashboard!' AS message;
