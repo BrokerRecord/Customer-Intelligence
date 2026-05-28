@@ -100,41 +100,31 @@ customer-intelligence/
 │       ├── monthly_segment_revenue.csv   # 193 rows
 │       └── customer_360_view.csv         # 5,878 rows, 20 columns
 │
-├── notebooks/                    # Core analysis (Jupyter)
-│   ├── 01_data_cleaning.ipynb    # Data preparation & cleaning ✅
-│   ├── 02_rfm_analysis.ipynb     # RFM customer segmentation ✅
-│   ├── 03_churn_prediction.ipynb # ML churn model training & evaluation ✅
-│   ├── 04_clv_analysis.ipynb     # CLV modeling (BG/NBD + Gamma-Gamma) ✅
-│   └── 05_ab_testing_simulation.ipynb # A/B test framework & ROI analysis ✅
+├── notebooks/                    # Core analysis
+│   ├── 01_data_cleaning.ipynb    # Data preparation & cleaning
+│   ├── 02_rfm_analysis.ipynb     # RFM customer segmentation
+│   ├── 03_churn_prediction.ipynb # ML churn model training & evaluation
+│   ├── 04_clv_analysis.ipynb     # CLV modeling (BG/NBD + Gamma-Gamma)
+│   └── 05_ab_testing_simulation.ipynb # A/B test framework & ROI analysis
 │
 ├── sql/                          # Database scripts
-│   ├── 01_create_tables.sql      # Complete schema definition (15 tables) ✅
-│   ├── 02_load_data.sql          # Loading data from CSVs into MySQL ✅
-│   └── 03_kpi_queries.sql        # Business KPI calculations ✅
+│   ├── 01_create_tables.sql
+│   ├── 02_load_data.sql
+│   └── 03_kpi_queries.sql
 │
-├── models/                       # Saved ML models (joblib files)
-│   ├── churn_prediction_model.pkl    # Logistic Regression model
-│   ├── feature_scaler.pkl            # StandardScaler for features
-│   └── feature_list.csv              # 25 feature names
+├── models/
+│   ├── churn_prediction_model.pkl
+│   ├── feature_scaler.pkl
+│   └── feature_list.csv
 │
-├── reports/                      # Generated reports & visualizations
-│   ├── rfm_analysis_visualization.png
-│   ├── clv_analysis_visualization.png
-│   ├── churn_feature_importance.png
-│   ├── churn_confusion_roc.png
-│   ├── ab_test_results.png
-│   ├── rfm_insights_summary.txt
-│   ├── final_executive_report.txt
-│   ├── final_executive_report.pdf
-│   └── final_metrics.json
+├── reports/
 │
-├── powerbi/                      # Power BI dashboard files
+├── powerbi/
+│   ├──  screenshots/
 │   └── Customer Intelligence Dashboard.pbix
 │
-├── scripts/
-│   └── generate_final_report.py    # generate the final report
-├── requirements.txt              # Python dependencies
-└── README.md                     # Project documentation
+├── requirements.txt
+└── README.md
 ```
 
 ## 🗄️ Database Schema (15 Tables)
@@ -190,26 +180,35 @@ Git (for version control)
    pip install -r requirements.txt
    ```
 
-4. **Set up the MySQL database**
-
-   ```sql
-   -- Create database
-   CREATE DATABASE retail_analytics;
-   USE retail_analytics;
-
-   -- Run schema creation
-   source sql/01_create_tables.sql;
-
-   -- Load data (update file paths first)
-   source sql/02_load_data.sql;
    ```
 
-5. **Run the analysis pipeline**
+   ```
+
+4. **Run the analysis pipeline**
 
    ```bash
    jupyter notebook notebooks/
    # Execute notebooks in order (01 → 05)
+
    ```
+
+5. **Set up the MySQL database**
+
+   ````sql
+   -- Create database
+   source sql/db.sql
+
+   -- Run schema creation
+   source sql/01_create_tables.sql;
+
+   -- Load data
+   source sql/02_load_data.sql;
+
+   -- KPI Queries
+   source sql/03_kpi_queries.sql;
+   ```
+
+   ````
 
 6. **Open the Power BI dashboard**
    - Open `powerbi/Customer Intelligence Dashboard.pbix`
@@ -275,13 +274,13 @@ The interactive dashboard provides 8 key pages:
 
 _Key metrics at a glance: £17.4M revenue, 5,878 customers, 56.6% churn rate_
 
-![Executive Overview](powerbi/screenshots/executive_overview.png)
+![Executive Overview](powerbi/screenshots/executive_overview.PNG)
 
 ### Customer Intelligence View
 
 _RFM segmentation (11 segments) + Churn risk analysis + CLV forecasting_
 
-![Customer Analytics](powerbi/screenshots/customer_analytics.png)
+![Customer Analytics](powerbi/screenshots/customer_analytics.PNG)
 
 [Download Power BI File](powerbi/Customer%20Intelligence%20Dashboard.pbix)
 
