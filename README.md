@@ -271,6 +271,20 @@ The interactive dashboard provides 8 key pages:
 | **Geographic Analysis**       | Country performance, revenue by region             |
 | **Marketing ROI**             | A/B test results, campaign performance             |
 
+### Executive Dashboard
+
+_Key metrics at a glance: £17.4M revenue, 5,878 customers, 56.6% churn rate_
+
+![Executive Overview](powerbi/screenshots/executive_overview.png)
+
+### Customer Intelligence View
+
+_RFM segmentation (11 segments) + Churn risk analysis + CLV forecasting_
+
+![Customer Analytics](powerbi/screenshots/customer_analytics.png)
+
+[Download Power BI File](powerbi/Customer%20Intelligence%20Dashboard.pbix)
+
 ## 🔧 Troubleshooting
 
 ### Common MySQL Issues
