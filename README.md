@@ -123,11 +123,16 @@ customer-intelligence/
 │   ├── churn_feature_importance.png
 │   ├── churn_confusion_roc.png
 │   ├── ab_test_results.png
-│   └── rfm_insights_summary.txt
+│   ├── rfm_insights_summary.txt
+│   ├── final_executive_report.txt
+│   ├── final_executive_report.pdf
+│   └── final_metrics.json
 │
 ├── powerbi/                      # Power BI dashboard files
 │   └── Customer Intelligence Dashboard.pbix
 │
+├── scripts/
+│   └── generate_final_report.py    # generate the final report
 ├── requirements.txt              # Python dependencies
 └── README.md                     # Project documentation
 ```

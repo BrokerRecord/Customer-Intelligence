@@ -1,0 +1,147 @@
+
+================================================================================
+                    CUSTOMER INTELLIGENCE SYSTEM
+                         FINAL EXECUTIVE REPORT
+================================================================================
+
+Report Generated: 2026-05-28 21:35:49
+Analysis Period: Dec 2009 - Dec 2011
+
+================================================================================
+1. EXECUTIVE SUMMARY
+================================================================================
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ Metric                    │ Value                                           │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Total Revenue             │ £17,374,804.27                                  │
+│ Total Customers           │ 5,878                                           │
+│ Total Orders              │ 36,969                                           │
+│ Average Order Value       │ £469.98                                    │
+│ Revenue per Customer      │ £2955.90                                 │
+│ Top Country               │ United Kingdom (82.8% of revenue)    │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+================================================================================
+2. CUSTOMER SEGMENTATION (RFM Analysis)
+================================================================================
+📊 SEGMENT DISTRIBUTION:
+   • Total Segments Identified: 11
+   • Largest Segment: Champions (1,821 customers - 31.0%)
+
+⭐ CHAMPIONS (Highest Value):
+   • Count: 1,821 customers
+   • Revenue: £13,186,331.03
+   • Contribution: 75.9% of total revenue
+
+⚠️ AT RISK CUSTOMERS:
+   • Count: 687 customers
+   • Revenue: £787,723.78
+
+================================================================================
+3. CHURN PREDICTION MODEL
+================================================================================
+🎯 MODEL PERFORMANCE:
+   • Best Model: Logistic Regression
+   • ROC-AUC Score: 72.9%
+   • Optimal Threshold: 0.10
+   • Validation: Time-based split (NO LEAKAGE)
+
+⚠️ RISK ASSESSMENT:
+   • Overall Churn Rate: 56.6%
+   • High-Risk Customers: 2,161
+   • Critical Risk Customers: 427
+   • Average Risk Score: 0.485
+
+💰 REVENUE IMPACT:
+   • Active High-Risk Customers: 414
+   • Revenue at Risk: £510,609.68
+   • Expected Revenue Loss: £348,996.17
+
+================================================================================
+4. CUSTOMER LIFETIME VALUE (12-Month Forecast)
+================================================================================
+💎 CLV STATISTICS:
+   • Total Predicted CLV: £6,485,330.27
+   • Average CLV per Customer: £1788.56
+   • Median CLV: £712.88
+   • Customers with CLV Data: 3,626
+
+🏆 HIGH VALUE SEGMENT:
+   • Customers: 907
+   • Total Value: £4,927,342.60
+   • Value Share: 76.0%
+
+💎 PREMIUM TIER (>$5,000):
+   • Average CLV: £15,073.24
+
+================================================================================
+5. A/B TEST RESULTS (Re-engagement Campaign)
+================================================================================
+🧪 EXPERIMENT DESIGN:
+   • Target Segments: At Risk, About to Sleep, Hibernating, Lost
+   • Sample Size: 1,446 customers
+   • Test Group: 15% discount offer
+   • Control Group: No offer
+
+📊 RESULTS:
+   • Conversion Lift: 61.2%
+   • P-Value: 0.0150
+   • Statistically Significant: YES
+   • Projected ROI: 648.2%
+
+🎯 RECOMMENDATION: DEPLOY CAMPAIGN TO FULL POPULATION
+
+================================================================================
+6. PRODUCT & TIME INSIGHTS
+================================================================================
+🏆 TOP PERFORMING PRODUCT:
+   • REGENCY CAKESTAND 3 TIER
+   • Revenue: £277,656.25
+
+⏰ PEAK SHOPPING HOURS (10am-4pm):
+   • Revenue Share: 83.2%
+
+📅 WEEKEND SHOPPING:
+   • Revenue Share: 10.2%
+
+================================================================================
+7. KEY RECOMMENDATIONS
+================================================================================
+
+1. 🎯 RETAIN HIGH-VALUE CUSTOMERS
+   → Champions (1,821 customers) drive 75.9% of revenue
+   → Implement VIP loyalty program with early access and exclusive benefits
+
+2. ⚠️ RECOVER AT-RISK CUSTOMERS
+   → 687 customers represent £787,723.78
+   → Launch targeted win-back campaigns with personalized offers
+
+3. 🔴 PREVENT CHURN IN HIGH-RISK SEGMENT
+   → 414 active customers at risk (£510,609.68)
+   → Expected loss of £348,996.17 if no action taken
+   → Deploy A/B tested campaign with 61.2% expected lift
+
+4. 💎 MAXIMIZE CLV
+   → Premium tier customers average £15,073.24 CLV
+   → Focus retention efforts on high-value segment (907 customers)
+
+5. 📈 OPTIMIZE MARKETING TIMING
+   → 83.2% of revenue during peak hours (10am-4pm)
+   → 10.2% of revenue on weekends
+
+================================================================================
+8. FINANCIAL SUMMARY
+================================================================================
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ Category                    │ Amount                                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ Total Revenue               │ £17,374,804.27                              │
+│ Total Predicted CLV         │ £6,485,330.27                              │
+│ Revenue at Risk             │ £510,609.68                              │
+│ Expected Revenue Loss       │ £348,996.17                              │
+│ Champions Revenue           │ £13,186,331.03                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+================================================================================
+Report Generated by Customer Intelligence System
+================================================================================
