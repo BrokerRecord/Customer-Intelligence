@@ -2,7 +2,6 @@
 
 **Projet personnel · Data Analytics · Machine Learning · Business Intelligence**
 
-[🇬🇧 English](README_EN.md)
 
 ## Présentation
 
