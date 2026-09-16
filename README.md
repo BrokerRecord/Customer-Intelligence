@@ -1,6 +1,6 @@
-# 🎯 Customer Intelligence & Churn Prediction System
+# 🎯 Customer Intelligence & Retail Analytics
 
-> **Enterprise-grade retail analytics platform**: From raw transaction data to predictive insights
+This is an independent portfolio project using historical retail data. Predictive estimates and simulated campaign outcomes should not be interpreted as realized business results.
 
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/)
 [![scikit-learn](https://img.shields.io/badge/scikit--learn-1.0+-orange.svg)](https://scikit-learn.org/)
@@ -10,17 +10,32 @@
 
 ## 📊 Project Overview
 
-This project delivers a **complete customer intelligence solution** for retail businesses, transforming raw transaction data (1.06M+ rows) into actionable insights through advanced analytics and machine learning. The system provides a 360-degree view of customer behavior, predicts churn risk, forecasts customer lifetime value, and enables data-driven marketing decisions.
+An independent data analytics project exploring how transactional retail data can support customer segmentation, churn analysis, customer lifetime value forecasting, and business reporting.
 
-### 🎯 Key Capabilities
+The project covers the complete analytical workflow, from raw data preparation and SQL modeling to statistical analysis, predictive modeling, and interactive Power BI dashboards.
 
-| Capability             | Description                              | Business Impact                  |
-| ---------------------- | ---------------------------------------- | -------------------------------- |
-| **RFM Segmentation**   | 11 distinct customer segments identified | Targeted marketing campaigns     |
-| **Churn Prediction**   | 72.9% ROC-AUC predictive model           | £307K revenue at risk identified |
-| **CLV Forecasting**    | 12-month value predictions               | £6.48M+ total predicted CLV      |
-| **A/B Testing**        | Statistical campaign evaluation          | 648% ROI on re-engagement        |
-| **Power BI Dashboard** | Real-time business monitoring            | Executive decision support       |
+Project scope:
+
+- Dataset: Online Retail II (2009–2011)
+- Raw transactions: 1,067,371
+- Cleaned transactions: 779,425
+- Unique customers: 5,878
+- Technologies: Python, MySQL, Power BI, scikit-learn, SciPy
+
+Main deliverables: A structured analytical database, customer segmentation, predictive models, an interactive Power BI dashboard, and a simulated marketing experiment.
+
+## 🎯 Key Capabilities
+
+| Module                | Implementation                          | Output                                 |
+| --------------------- | --------------------------------------- | -------------------------------------- |
+| Data Engineering      | Python cleaning and MySQL data modeling | 779,425 cleaned transactions           |
+| Customer Segmentation | RFM analysis                            | 11 customer segments                   |
+| Churn Prediction      | Machine learning classification         | ROC-AUC: 0.7294                        |
+| CLV Forecasting       | BG/NBD and Gamma-Gamma models           | 12-month customer value estimates      |
+| A/B Testing           | Simulated re-engagement experiment      | Statistical analysis and projected ROI |
+| Business Intelligence | Power BI                                | 8-page interactive dashboard           |
+
+**Note:** The churn and CLV results are model outputs. The A/B testing results are simulated and do not represent an actual marketing campaign.
 
 ## 📈 Key Business Insights
 
@@ -47,13 +62,27 @@ This project delivers a **complete customer intelligence solution** for retail b
 - **Premium tier customers** (>£5,000 CLV) average **£15,073** each
 - **Model validation**: 0.783 correlation with 90-day holdout data
 
-### A/B Test Results
+### Simulated A/B Testing — Customer Re-engagement
 
-- **Tested campaign**: Re-engagement with 15% discount
-- **Target segments**: At Risk, About to Sleep, Hibernating, Lost (1,446 customers)
-- **Conversion lift**: 61.2% (statistically significant, p=0.015)
-- **Projected ROI**: **648.2%** with net profit of **£29,636**
-- **Recommendation**: Deploy to full population
+**Objective:** Evaluate a hypothetical re-engagement campaign targeting customers at risk of churn.
+
+**Experimental design:**
+
+* Target population: 1,446 customers
+* Target segments: At Risk, About to Sleep, Hibernating, Lost
+* Intervention: Hypothetical 15% discount
+* Methodology: Stratified randomization, Chi-square test and Welch's t-test
+
+**Simulation outputs:**
+
+* Simulated conversion lift: 61.2%
+* Simulated statistical significance: p = 0.015
+* Projected ROI: 648.2%
+
+**Important limitation:** These results were generated through a simulated experiment. They are not observed outcomes from a real marketing campaign. Statistical significance is conditional on the simulation assumptions and does not establish that the intervention would produce the same results in practice.
+
+**Next step:** Validate the approach through a real randomized experiment before making deployment decisions.
+
 
 ## 🏗️ System Architecture
 
@@ -291,6 +320,36 @@ _RFM segmentation (11 segments) + Churn risk analysis + CLV forecasting_
 | `Error Code: 1366. Incorrect integer value: 'False'` | Convert booleans: `CASE WHEN @col = 'True' THEN 1 ELSE 0 END`                |
 | `Error Code: 1055. Expression not in GROUP BY`       | Use `DISTINCT` instead of `GROUP BY` or disable `only_full_group_by`         |
 | `Error Code: 1265. Data truncated`                   | Increase column precision (e.g., `DECIMAL(16,2)` instead of `DECIMAL(10,2)`) |
+
+## Methodology & Limitations
+
+### Dataset
+
+This project uses the historical Online Retail II dataset. The analysis is retrospective and does not involve live customer transactions.
+
+### Churn Definition
+
+Churn is operationally defined as the absence of a purchase during a 90-day period.
+
+The observation window, prediction window, feature construction, and evaluation split should be documented to establish whether the model supports prospective churn prediction.
+
+### Customer Lifetime Value
+
+CLV estimates are model-based forecasts rather than realized future revenue. Their reliability depends on the assumptions of the BG/NBD and Gamma-Gamma models and the characteristics of the transaction data.
+
+### Simulated Marketing Experiment
+
+The A/B testing module demonstrates experimental design, statistical testing, and financial evaluation using simulated campaign outcomes.
+
+The estimated conversion uplift and ROI are illustrative and require validation through a real randomized experiment.
+
+### Generalizability
+
+The dataset contains historical retail transactions. Customer behavior, purchasing patterns, and model performance may differ in contemporary retail environments.
+
+### Deployment
+
+The project demonstrates an analytical workflow and interactive reporting. It does not claim to be a production-deployed, real-time customer intelligence system.
 
 ## 🤝 Contributing
 
