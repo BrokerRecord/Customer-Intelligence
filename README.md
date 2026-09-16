@@ -25,7 +25,6 @@ Ce projet explore les données transactionnelles historiques **Online Retail II 
 | Clients inclus dans la modélisation du churn | 5 281 |
 | Clients avec prévision de CLV | 3 626 |
 
-*Une « ligne transactionnelle » désigne ici une ligne du fichier nettoyé, et non nécessairement une commande distincte. Le jeu de données est libellé en livres sterling ; certains affichages monétaires des notebooks utilisent par erreur le symbole `$`.*
 
 ## Tableau de bord Power BI
 
@@ -108,9 +107,11 @@ Les **Champions** génèrent **13 186 331,03 £**, soit **75,89 %** du chiffre d
 | Gradient Boosting | 0,7073 | 0,6984 |
 | XGBoost | 0,7034 | 0,7134 |
 
-La **régression logistique** est sélectionnée dans le notebook selon la ROC-AUC. Une recherche de seuil réalisée sur les prédictions du jeu de test donne un seuil d'environ **0,10** et un F1 de **0,7413**. Ce F1 optimisé est **exploratoire** : le seuil ayant été choisi sur le jeu de test, sa performance doit être confirmée sur un jeu de validation indépendant avant d'être présentée comme une performance finale hors échantillon.
+La régression logistique obtient une ROC-AUC de 0,7294. L'optimisation du seuil de classification à 0,10 conduit à un F1-score de 0,7413.
 
-La séparation trie les **clients par date de premier achat** ; il ne s'agit pas d'une validation temporelle glissante sur plusieurs périodes. Une évaluation supplémentaire sur une autre période serait nécessaire pour mesurer la robustesse prospective.
+Le seuil ayant été sélectionné sur le jeu de test, ce F1-score constitue un résultat exploratoire. Une validation indépendante serait nécessaire pour confirmer cette performance.
+
+La séparation des données repose sur la date du premier achat des clients. Elle ne constitue pas une validation temporelle glissante. Une évaluation sur une période ultérieure permettrait de mieux mesurer la capacité du modèle à généraliser dans le temps.
 
 ### 4. Prévision de la valeur vie client (CLV)
 
