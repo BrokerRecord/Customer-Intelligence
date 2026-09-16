@@ -1,406 +1,336 @@
-# 🎯 Customer Intelligence & Retail Analytics
+# Customer Intelligence & Retail Analytics
 
-This is an independent portfolio project using historical retail data. Predictive estimates and simulated campaign outcomes should not be interpreted as realized business results.
+**End-to-end data analytics and machine learning portfolio project** · Python · MySQL · Power BI · scikit-learn
 
-[![Python 3.10+](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/)
-[![scikit-learn](https://img.shields.io/badge/scikit--learn-1.0+-orange.svg)](https://scikit-learn.org/)
-[![Power BI](https://img.shields.io/badge/Power%20BI-Dashboard-yellow.svg)](https://powerbi.microsoft.com/)
-[![MySQL](https://img.shields.io/badge/MySQL-8.0+-blue.svg)](https://www.mysql.com/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/) [![Power BI](https://img.shields.io/badge/Power%20BI-Dashboard-yellow.svg)](https://powerbi.microsoft.com/) [![MySQL](https://img.shields.io/badge/MySQL-8.0%2B-blue.svg)](https://www.mysql.com/) [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-## 📊 Project Overview
+> **Portfolio project using historical retail transactions.** Customer lifetime value and churn-risk outputs are model estimates; the marketing A/B test is a **simulation**, not a real campaign. No production or real-time deployment is claimed.
 
-An independent data analytics project exploring how transactional retail data can support customer segmentation, churn analysis, customer lifetime value forecasting, and business reporting.
+## Project overview
 
-The project covers the complete analytical workflow, from raw data preparation and SQL modeling to statistical analysis, predictive modeling, and interactive Power BI dashboards.
+This independent project explores how retail transaction data can support customer segmentation, churn analysis, customer lifetime value (CLV) forecasting, and business reporting. It combines data cleaning, SQL modeling, statistical analysis, machine learning, and an interactive Power BI dashboard.
 
-Project scope:
+| Project metric | Reported value |
+|---|---:|
+| Raw transactions | 1,067,371 |
+| Cleaned transactions | 779,425 |
+| Unique customers | 5,878 |
+| Revenue in cleaned data | £17,374,804.27 |
+| RFM segments | 11 |
+| Machine-learning models compared | 4 |
+| Power BI pages | 8 |
 
-- Dataset: Online Retail II (2009–2011)
-- Raw transactions: 1,067,371
-- Cleaned transactions: 779,425
-- Unique customers: 5,878
-- Technologies: Python, MySQL, Power BI, scikit-learn, SciPy
+**Dataset:** [Online Retail II — UCI Machine Learning Repository](https://archive.ics.uci.edu/dataset/502/online+retail+ii) (transactions from 2009–2011).
 
-Main deliverables: A structured analytical database, customer segmentation, predictive models, an interactive Power BI dashboard, and a simulated marketing experiment.
+### Questions addressed
 
-## 🎯 Key Capabilities
+- How do purchasing patterns differ across customer segments?
+- Which customers might be at risk of churn, given a defined observation and outcome window?
+- What future customer value do probabilistic CLV models estimate?
+- How can business users explore customer, product, geographic, and time-series trends?
+- How could a re-engagement campaign be evaluated statistically in a *simulated* experiment?
 
-| Module                | Implementation                          | Output                                 |
-| --------------------- | --------------------------------------- | -------------------------------------- |
-| Data Engineering      | Python cleaning and MySQL data modeling | 779,425 cleaned transactions           |
-| Customer Segmentation | RFM analysis                            | 11 customer segments                   |
-| Churn Prediction      | Machine learning classification         | ROC-AUC: 0.7294                        |
-| CLV Forecasting       | BG/NBD and Gamma-Gamma models           | 12-month customer value estimates      |
-| A/B Testing           | Simulated re-engagement experiment      | Statistical analysis and projected ROI |
-| Business Intelligence | Power BI                                | 8-page interactive dashboard           |
+## Dashboard preview
 
-**Note:** The churn and CLV results are model outputs. The A/B testing results are simulated and do not represent an actual marketing campaign.
+### Executive overview
 
-## 📈 Key Business Insights
+![Executive dashboard](powerbi/screenshots/executive_overview.PNG)
 
-### Customer Segmentation
+### Customer analytics
 
-- **Champions** (1,821 customers - 30.98% of base) generate **£13.19M** (75.89% of total revenue)
-- **At Risk** customers (687) represent **£787.7K** in potential churn revenue
-- **New Customers** (336) show 56% churn rate within first 90 days
-- **Hibernating + Lost** customers (732) represent **£176.3K** in inactive revenue
+![Customer analytics dashboard](powerbi/screenshots/customer_analytics.PNG)
 
-### Churn Prediction Results
+[Open the Power BI report](powerbi/Customer%20Intelligence%20Dashboard.pbix)
 
-- **Overall churn rate**: 56.60% (3,490 of 5,878 customers)
-- **Best performing model**: Logistic Regression (ROC-AUC: 0.7294)
-- **Optimal threshold**: 0.10 (maximizes F1 score to 0.7413)
-- **Top churn predictors**: Peak hour purchases, spend per item, total orders
-- **High-risk customers identified**: 2,161 active customers
-- **High-risk active customers**: 414 customers with £307,781 revenue at risk
+> The image and report paths above come from the documented repository structure. Verify the exact filenames and capitalization before publishing. The `.pbix` file may require updating local data-source paths when opened on another computer.
 
-### Customer Lifetime Value
+## Analytical workflow
 
-- **Total predicted CLV (12 months)**: **£6,485,330.27**
-- **High CLV segment** (25% of customers) drives **76.0%** of total CLV
-- **Premium tier customers** (>£5,000 CLV) average **£15,073** each
-- **Model validation**: 0.783 correlation with 90-day holdout data
-
-### Simulated A/B Testing — Customer Re-engagement
-
-**Objective:** Evaluate a hypothetical re-engagement campaign targeting customers at risk of churn.
-
-**Experimental design:**
-
-* Target population: 1,446 customers
-* Target segments: At Risk, About to Sleep, Hibernating, Lost
-* Intervention: Hypothetical 15% discount
-* Methodology: Stratified randomization, Chi-square test and Welch's t-test
-
-**Simulation outputs:**
-
-* Simulated conversion lift: 61.2%
-* Simulated statistical significance: p = 0.015
-* Projected ROI: 648.2%
-
-**Important limitation:** These results were generated through a simulated experiment. They are not observed outcomes from a real marketing campaign. Statistical significance is conditional on the simulation assumptions and does not establish that the intervention would produce the same results in practice.
-
-**Next step:** Validate the approach through a real randomized experiment before making deployment decisions.
-
-
-## 🏗️ System Architecture
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           DATA PIPELINE                                     │
-├───────────────┬─────────────────┬─────────────────┬───────────────────────┤
-│   RAW DATA    │    CLEANING      │    FEATURE       │      MODELING         │
-│  (Excel/CSV)  │      →           │   ENGINEERING    │          →            │
-│  1.06M rows   │  779K rows       │   25 features    │   4 ML models         │
-├───────────────┼─────────────────┼─────────────────┼───────────────────────┤
-│   SQL DB      │    ANALYTICS     │      POWER BI    │     AUTOMATED         │
-│   (MySQL)     │      →           │    DASHBOARD     │      REPORTS          │
-│   15 tables   │   RFM/CLV/Churn  │   Interactive    │   Executive Summary   │
-└───────────────┴─────────────────┴─────────────────┴───────────────────────┘
+```text
+Online Retail II (Excel/CSV)
+       |
+       v
+Python: cleaning and feature engineering
+       |
+       v
+MySQL: transaction fact and analytical tables
+       |
+       +--> RFM customer segmentation
+       +--> Churn classification and risk scoring
+       +--> CLV estimation
+       +--> Simulated campaign A/B analysis
+       |
+       v
+Power BI: interactive reporting
 ```
 
-## 🛠️ Technology Stack
+The README documents 15 analytical database tables and 25 features used in the churn modeling stage. The diagram represents the analytical workflow, not an automated production orchestration system.
 
-| Layer                    | Technologies                                                 |
-| ------------------------ | ------------------------------------------------------------ |
-| **Data Processing**      | Python (Pandas, NumPy)                                       |
-| **Machine Learning**     | scikit-learn, XGBoost, SHAP, Lifetimes (BG/NBD, Gamma-Gamma) |
-| **Statistical Analysis** | SciPy, StatsModels (Chi-square, T-tests, Power analysis)     |
-| **Database**             | MySQL 8.0, MySQL Workbench                                   |
-| **Visualization**        | Power BI, Matplotlib, Seaborn                                |
-| **Version Control**      | Git, GitHub                                                  |
+## Methods and results
 
-## 📁 Repository Structure
+### 1. Data cleaning and preparation
 
-```
-customer-intelligence/
-│
+**Notebook:** `notebooks/01_data_cleaning.ipynb`
+
+- Input: 1,067,371 historical transactions.
+- Documented cleaning: missing customer identifiers, duplicate records, and cancelled orders.
+- Missing `customer_id` values: 22.77% in the original analysis.
+- Output: 779,425 cleaned transactions, with time-based and customer-related features.
+- Analytical outputs include a transaction fact table and customer, product, and date dimensions.
+
+See the notebook for the exact inclusion/exclusion rules and feature definitions.
+
+### 2. RFM customer segmentation
+
+**Notebook:** `notebooks/02_rfm_analysis.ipynb`
+
+RFM scores summarize **recency**, **frequency**, and **monetary value**. The project uses quartile-based scoring to assign customers to 11 segments, including Champions, Loyal, At Risk, and Hibernating.
+
+| Reported descriptive finding | Value |
+|---|---:|
+| Champions | 1,821 customers (30.98%) |
+| Revenue associated with Champions | £13.19M (75.89% of total) |
+| At Risk segment | 687 customers |
+| Revenue associated with At Risk segment | £787.7K |
+
+These figures describe the historical dataset and segmentation rules; they are not measured effects of marketing interventions.
+
+### 3. Churn classification
+
+**Notebook:** `notebooks/03_churn_prediction.ipynb`
+
+The project describes churn as **no purchase during a 90-day period** and compares Logistic Regression, Random Forest, Gradient Boosting, and XGBoost using behavioral features.
+
+| Reported result | Value |
+|---|---:|
+| Overall churn prevalence | 56.60% (3,490 / 5,878 customers) |
+| Best model reported in this README | Logistic Regression |
+| ROC-AUC | 0.7294 |
+| Selected decision threshold | 0.10 |
+| Active customers flagged as high risk | 2,161 |
+| High-risk active customers in revenue-at-risk subset | 414 |
+| Historical revenue associated with that subset | £307,781 |
+
+**Interpretation:** £307,781 is a revenue-at-risk *estimate based on historical customer value and risk rules*, not a verified future loss or a realized financial impact.
+
+**Methodology to verify before presenting this as prospective prediction:** Document the observation cutoff, the subsequent 90-day label window, the feature-generation cutoff, the train/test split, and whether preprocessing was fitted on training data only. Confirm that no transactions from the outcome period enter the predictors. Also reconcile the F1 values **0.7413** and **0.7428** appearing in the earlier README against the actual notebook output; an F1 figure is intentionally omitted here until verified.
+
+### 4. Customer lifetime value forecasting
+
+**Notebook:** `notebooks/04_clv_analysis.ipynb`
+
+The analysis uses BG/NBD and Gamma-Gamma models to estimate customer purchasing behavior and monetary value over a 12-month horizon.
+
+| Reported model output | Value |
+|---|---:|
+| Customers with CLV predictions | 3,626 |
+| Total predicted 12-month CLV | £6,485,330.27 |
+| Correlation reported for 90-day holdout | 0.783 |
+| Share of modeled CLV attributed to top 25% of customers | 76.0% |
+
+These are **forecasts and validation statistics**, not realized future revenue. Model assumptions, eligible-customer criteria, and the holdout procedure should be checked in the notebook.
+
+### 5. Simulated A/B test: customer re-engagement
+
+**Notebook:** `notebooks/05_ab_testing_simulation.ipynb`
+
+This module demonstrates a *hypothetical* campaign evaluation rather than reporting a campaign deployed to real customers.
+
+- **Scenario:** 15% discount for re-engagement.
+- **Target population:** 1,446 customers across At Risk, About to Sleep, Hibernating, and Lost segments.
+- **Design described in the project:** stratified randomization by monetary tier.
+- **Statistical methods:** chi-square test for conversion and Welch's t-test for revenue.
+
+| Simulated outcome | Value |
+|---|---:|
+| Conversion lift | 61.2% |
+| Simulated p-value | 0.015 |
+| Projected ROI | 648.2% |
+| Projected net profit | £29,636 |
+
+**Important:** These results depend on simulated outcomes and assumptions. The p-value does not establish an effect in real customers, and projected ROI is not earned revenue. A real randomized trial would be necessary before making deployment decisions.
+
+## Power BI dashboard
+
+The documented eight-page report includes:
+
+| Page | Focus |
+|---|---|
+| Executive Overview | Revenue, customers, churn rate, products |
+| Customer Segmentation | RFM distribution and revenue by segment |
+| Churn Risk Analysis | Risk distribution and estimated revenue at risk |
+| CLV Forecasting | Predicted value by tier and segment |
+| Time Series & Seasonality | Revenue and purchasing patterns over time |
+| Product Performance | Product and category analysis |
+| Geographic Analysis | Country and regional revenue |
+| Marketing ROI | **Simulated** A/B test and projected campaign economics |
+
+The report is an interactive analysis of historical data; it is not described here as a real-time monitoring service.
+
+## Technology stack
+
+| Area | Tools |
+|---|---|
+| Data processing | Python, pandas, NumPy |
+| Database | MySQL 8.0, MySQL Workbench |
+| Machine learning | scikit-learn, XGBoost, SHAP |
+| CLV modeling | Lifetimes (BG/NBD, Gamma-Gamma) |
+| Statistical analysis | SciPy, statsmodels |
+| Visualization | Power BI, Matplotlib, Seaborn |
+| Version control | Git, GitHub |
+
+## Repository structure
+
+```text
+Customer-Intelligence/
 ├── data/
-│   ├── raw/                      # Original transaction data (Excel)
-│   └── processed/                # Cleaned data and model outputs (CSVs)
-│       ├── cleaned_transactions.csv      # 779K rows, 19 columns
-│       ├── dim_customer.csv              # 5,878 rows, 14 columns
-│       ├── dim_customer_clv.csv          # 3,626 rows, 11 columns
-│       ├── dim_customer_risk.csv         # 5,281 rows, 6 columns
-│       ├── dim_product.csv               # 4,631 rows, 3 columns
-│       ├── dim_date.csv                  # 365+ rows, 13 columns
-│       ├── segment_kpis.csv              # 11 rows
-│       ├── monthly_segment_revenue.csv   # 193 rows
-│       └── customer_360_view.csv         # 5,878 rows, 20 columns
-│
-├── notebooks/                    # Core analysis
-│   ├── 01_data_cleaning.ipynb    # Data preparation & cleaning
-│   ├── 02_rfm_analysis.ipynb     # RFM customer segmentation
-│   ├── 03_churn_prediction.ipynb # ML churn model training & evaluation
-│   ├── 04_clv_analysis.ipynb     # CLV modeling (BG/NBD + Gamma-Gamma)
-│   └── 05_ab_testing_simulation.ipynb # A/B test framework & ROI analysis
-│
-├── sql/                          # Database scripts
+│   ├── raw/                         # Original input data, if distributed
+│   └── processed/                   # Derived analytical datasets
+├── notebooks/
+│   ├── 01_data_cleaning.ipynb
+│   ├── 02_rfm_analysis.ipynb
+│   ├── 03_churn_prediction.ipynb
+│   ├── 04_clv_analysis.ipynb
+│   └── 05_ab_testing_simulation.ipynb
+├── sql/
 │   ├── 01_create_tables.sql
 │   ├── 02_load_data.sql
 │   └── 03_kpi_queries.sql
-│
-├── models/
-│   ├── churn_prediction_model.pkl
-│   ├── feature_scaler.pkl
-│   └── feature_list.csv
-│
+├── models/                           # Saved model and preprocessing artifacts
 ├── reports/
-│
 ├── powerbi/
-│   ├──  screenshots/
+│   ├── screenshots/
 │   └── Customer Intelligence Dashboard.pbix
-│
 ├── requirements.txt
 └── README.md
 ```
 
-## 🗄️ Database Schema (15 Tables)
+> This is the structure documented in the original README, not an independently verified listing of the current GitHub repository. Update it if filenames, folders, or data distribution differ.
 
-| Table Name                   | Description                          | Row Count |
-| ---------------------------- | ------------------------------------ | --------- |
-| `fact_transactions`          | Cleaned transaction data             | 779,425   |
-| `dim_product`                | Product master with categories       | 4,631     |
-| `dim_date`                   | Date dimension for time intelligence | 365+      |
-| `dim_customer`               | Customer master with RFM scores      | 5,878     |
-| `dim_customer_clv`           | CLV predictions by customer          | 3,626     |
-| `dim_customer_risk`          | Churn risk scores by customer        | 5,281     |
-| `high_risk_active_customers` | At-risk active customers             | 414       |
-| `segment_kpis`               | RFM segment performance metrics      | 11        |
-| `clv_segment_summary`        | CLV segment aggregates               | 4         |
-| `clv_tier_summary`           | CLV tier aggregates                  | 4         |
-| `monthly_segment_revenue`    | Monthly revenue by segment           | 193       |
-| `revenue_metrics`            | Revenue at risk calculations         | 4         |
-| `risk_summary`               | Risk level distribution              | 5         |
-| `ab_test_results`            | A/B test experiment results          | 1         |
-| `customer_360_view`          | Complete customer view (all data)    | 5,878     |
+### Analytical database
 
-## 🚀 Getting Started
+The project documents 15 tables, including `fact_transactions`, `dim_customer`, `dim_product`, `dim_date`, `dim_customer_clv`, `dim_customer_risk`, `segment_kpis`, `monthly_segment_revenue`, and `customer_360_view`. See `sql/` for the authoritative schema and queries. Some tables are derived summaries rather than separate dimensions.
+
+## Getting started
 
 ### Prerequisites
 
+- Python 3.10 or newer
+- MySQL 8.0 or newer for the SQL workflow
+- Power BI Desktop to open the `.pbix` report (Windows)
+- Git and Jupyter Notebook
+- Access to the Online Retail II dataset, subject to its distribution terms
+
+### 1. Clone and install
+
 ```bash
-Python 3.10+
-MySQL 8.0+
-Power BI Desktop (for dashboard)
-Git (for version control)
+git clone https://github.com/BrokerRecord/Customer-Intelligence.git
+cd Customer-Intelligence
+python -m venv .venv
 ```
 
-### Installation
+Activate the environment:
 
-1. **Clone the repository**
+```powershell
+# Windows PowerShell
+.venv\Scripts\Activate.ps1
+```
 
-   ```bash
-   git clone https://github.com/BrokerRecord/Customer-Intelligence.git
-   cd Customer-Intelligence
-   ```
+```bash
+# Linux / macOS
+source .venv/bin/activate
+```
 
-2. **Create and activate a virtual environment**
+Install dependencies:
 
-   ```bash
-   python -m venv venv
-   source venv/bin/activate
-   ```
+```bash
+python -m pip install -r requirements.txt
+```
 
-3. **Install required Python packages**
+### 2. Prepare the input data
 
-   ```bash
-   pip install -r requirements.txt
+Download the historical Online Retail II dataset from the [UCI dataset page](https://archive.ics.uci.edu/dataset/502/online+retail+ii). Place the source files in the input location expected by `01_data_cleaning.ipynb` and update any machine-specific paths.
 
+**Before publishing:** Specify the exact input filenames and destination directory used by the notebook. The original README does not provide enough information to guarantee a fresh-clone run.
 
-   ```
+### 3. Run the notebooks
 
-4. **Run the analysis pipeline**
+```bash
+jupyter notebook
+```
 
-   ```bash
-   jupyter notebook notebooks/
-   # Execute notebooks in order (01 → 05)
+Execute notebooks `01` through `05` in order, checking their input/output paths and dependencies. The README does not establish that this sequence is fully automated.
 
-   ```
+### 4. Set up MySQL
 
-5. **Set up the MySQL database**
+The documented SQL files are:
 
-   ````sql
-   -- Create database
-   source sql/db.sql
+```text
+sql/01_create_tables.sql
+sql/02_load_data.sql
+sql/03_kpi_queries.sql
+```
 
-   -- Run schema creation
-   source sql/01_create_tables.sql;
+Run the scripts using MySQL Workbench or the MySQL client, in the order required by their contents. Configure database credentials and local CSV import paths as needed.
 
-   -- Load data
-   source sql/02_load_data.sql;
+**Before publishing:** Confirm which script creates/selects the database. The previous README referred to `sql/db.sql`, but that file was absent from its documented directory tree; this version does not invent a replacement command.
 
-   -- KPI Queries
-   source sql/03_kpi_queries.sql;
-   ```
+### 5. Open Power BI
 
-   ````
+Open `powerbi/Customer Intelligence Dashboard.pbix` in Power BI Desktop and update the data-source paths or connection settings before refreshing. Check that all eight pages and linked visuals load correctly.
 
-6. **Open the Power BI dashboard**
-   - Open `powerbi/Customer Intelligence Dashboard.pbix`
-   - Refresh data
+## Reproducibility checklist
 
-## 📊 Analysis Modules
+- [ ] Confirm all documented paths and filenames against the repository.
+- [ ] Specify the exact raw input files and download instructions.
+- [ ] Run the workflow from a fresh clone and clean Python environment.
+- [ ] Document the MySQL database-creation step and any import-path configuration.
+- [ ] Document the churn observation/outcome windows and leakage controls.
+- [ ] Reconcile the conflicting F1 values in the original README.
+- [ ] Verify the dashboard page count, screenshots, and `.pbix` link.
+- [ ] Verify that the numerical outputs above match the current notebooks and dashboard.
 
-### 1. Data Cleaning (`01_data_cleaning.ipynb`)
+## Limitations
 
-- **Input**: 1,067,371 raw transactions (2009-2011)
-- **Process**: Handled missing values (22.77% customer_id), removed duplicates, canceled orders
-- **Feature Engineering**: Created 16 new features (time-based, transaction type, customer type)
-- **Output**: 779,425 clean transactions, star schema tables (fact + dimensions)
+1. **Historical data:** The dataset covers 2009–2011; findings may not generalize to present-day retail behavior.
+2. **Operational churn definition:** Ninety days without a purchase is a project-specific proxy, not a confirmed customer cancellation.
+3. **Prediction validation:** Prospective churn claims require documented time-aware evaluation and safeguards against data leakage.
+4. **CLV uncertainty:** Forecasts depend on behavioral and model assumptions; predicted value is not realized revenue.
+5. **Simulated experiment:** Campaign uplift, significance, profit, and ROI are simulated or projected, not observed in production.
+6. **Deployment scope:** The repository demonstrates analytics and dashboarding, not production monitoring or real-time ingestion.
 
-### 2. RFM Analysis (`02_rfm_analysis.ipynb`)
+## Potential improvements
 
-- **Methodology**: Recency, Frequency, Monetary (RFM) scoring with quartile-based segmentation
-- **Segments**: 11 customer segments (Champions, Loyal, At Risk, Hibernating, etc.)
-- **Insights**: Champions (30.98% of customers) contribute 75.89% of revenue
-- **Outputs**: Customer dimension table, segment KPIs, monthly revenue trends
+- Add a reproducible configuration file or example environment settings without committing secrets.
+- Add automated checks for data quality and key metric consistency.
+- Publish an explicit time-based churn validation protocol and baseline comparison.
+- Add uncertainty estimates and calibration checks for risk and CLV predictions.
+- Test the pipeline and dashboard refresh on a fresh machine.
+- Evaluate the campaign design with real randomized data if such data becomes available and appropriate permissions are in place.
 
-### 3. Churn Prediction (`03_churn_prediction.ipynb`)
+## Troubleshooting
 
-- **Definition**: No purchase in last 90 days of data
-- **Features**: 25 behavioral features (transaction history, purchase patterns, temporal)
-- **Models Trained**: Logistic Regression (best), Random Forest, Gradient Boosting, XGBoost
-- **Performance**: 72.9% ROC-AUC, F1 score of 0.7428 with optimal threshold (0.10)
-- **Outputs**: Customer risk scores, high-risk target lists, revenue at risk calculations
+| Issue | Suggested check |
+|---|---|
+| MySQL date conversion (`1292`) | Confirm source date format and `STR_TO_DATE()` format string. |
+| Boolean-to-integer import (`1366`) | Convert textual `True`/`False` values explicitly. |
+| `ONLY_FULL_GROUP_BY` (`1055`) | Correct grouping and aggregation logic; do not disable SQL mode merely to suppress the error. |
+| Data truncation (`1265`) | Inspect source values and destination column types/precision before changing the schema. |
+| Power BI missing data | Update local paths, credentials, and data-source settings. |
 
-### 4. CLV Analysis (`04_clv_analysis.ipynb`)
+## Contributing
 
-- **Models**: BG/NBD (frequency/recency) + Gamma-Gamma (monetary value)
-- **Time Horizon**: 12-month predictions
-- **Validation**: Holdout period correlation of 0.783
-- **Segmentation**: CLV tiers (Premium, High, Medium, Low)
-- **Outputs**: CLV predictions for 3,626 customers, segment summaries
+Issues and pull requests are welcome. For changes affecting reported metrics, please include the relevant notebook output and explain any updated assumptions.
 
-### 5. A/B Testing (`05_ab_testing_simulation.ipynb`)
+## License
 
-- **Design**: Stratified randomization by monetary tier
-- **Target Segments**: At Risk, About to Sleep, Hibernating, Lost (1,446 customers)
-- **Analysis**: Chi-square test (conversion), Welch's t-test (revenue)
-- **Result**: 61.2% conversion lift, p=0.015 (significant), 648% ROI
-- **Outputs**: Experiment results, statistical analysis, ROI projections
+See [LICENSE](LICENSE) for the repository's license, if that file is present.
 
-## 📈 Power BI Dashboard
+## Acknowledgments
 
-The interactive dashboard provides 8 key pages:
-
-| Page                          | Content                                            |
-| ----------------------------- | -------------------------------------------------- |
-| **Executive Overview**        | Total revenue, customers, churn rate, top products |
-| **Customer Segmentation**     | RFM segment distribution, revenue by segment       |
-| **Churn Risk Analysis**       | Risk heatmap, revenue at risk, high-risk customers |
-| **CLV Forecasting**           | 12-month CLV predictions by tier and segment       |
-| **Time Series & Seasonality** | Revenue trends, hourly/daily patterns              |
-| **Product Performance**       | Top products, category analysis                    |
-| **Geographic Analysis**       | Country performance, revenue by region             |
-| **Marketing ROI**             | A/B test results, campaign performance             |
-
-### Executive Dashboard
-
-_Key metrics at a glance: £17.4M revenue, 5,878 customers, 56.6% churn rate_
-
-![Executive Overview](powerbi/screenshots/executive_overview.PNG)
-
-### Customer Intelligence View
-
-_RFM segmentation (11 segments) + Churn risk analysis + CLV forecasting_
-
-![Customer Analytics](powerbi/screenshots/customer_analytics.PNG)
-
-[Download Power BI File](powerbi/Customer%20Intelligence%20Dashboard.pbix)
-
-## 🔧 Troubleshooting
-
-### Common MySQL Issues
-
-| Error                                                | Solution                                                                     |
-| ---------------------------------------------------- | ---------------------------------------------------------------------------- |
-| `Error Code: 1292. Incorrect date value`             | Use `STR_TO_DATE()` with correct format (`%Y%m%d` for dates like `20091201`) |
-| `Error Code: 1366. Incorrect integer value: 'False'` | Convert booleans: `CASE WHEN @col = 'True' THEN 1 ELSE 0 END`                |
-| `Error Code: 1055. Expression not in GROUP BY`       | Use `DISTINCT` instead of `GROUP BY` or disable `only_full_group_by`         |
-| `Error Code: 1265. Data truncated`                   | Increase column precision (e.g., `DECIMAL(16,2)` instead of `DECIMAL(10,2)`) |
-
-## Methodology & Limitations
-
-### Dataset
-
-This project uses the historical Online Retail II dataset. The analysis is retrospective and does not involve live customer transactions.
-
-### Churn Definition
-
-Churn is operationally defined as the absence of a purchase during a 90-day period.
-
-The observation window, prediction window, feature construction, and evaluation split should be documented to establish whether the model supports prospective churn prediction.
-
-### Customer Lifetime Value
-
-CLV estimates are model-based forecasts rather than realized future revenue. Their reliability depends on the assumptions of the BG/NBD and Gamma-Gamma models and the characteristics of the transaction data.
-
-### Simulated Marketing Experiment
-
-The A/B testing module demonstrates experimental design, statistical testing, and financial evaluation using simulated campaign outcomes.
-
-The estimated conversion uplift and ROI are illustrative and require validation through a real randomized experiment.
-
-### Generalizability
-
-The dataset contains historical retail transactions. Customer behavior, purchasing patterns, and model performance may differ in contemporary retail environments.
-
-### Deployment
-
-The project demonstrates an analytical workflow and interactive reporting. It does not claim to be a production-deployed, real-time customer intelligence system.
-
-## 🤝 Contributing
-
-We welcome contributions! Please follow these steps:
-
-1. **Fork** the repository
-2. **Create** a feature branch (`git checkout -b feature/AmazingFeature`)
-3. **Commit** your changes (`git commit -m 'Add some AmazingFeature'`)
-4. **Push** to the branch (`git push origin feature/AmazingFeature`)
-5. **Open** a Pull Request
-
-## 📄 License
-
-Distributed under the MIT License. See `LICENSE` for more information.
-
-## 📧 Contact
-
-**Awa Mbaye** - [evash0uwha@gmail.com](mailto:evash0uwha@gmail.com)
-
-**Project Link**: [https://github.com/BrokerRecord/Customer-Intelligence](https://github.com/BrokerRecord/Customer-Intelligence)
-
-## 🙏 Acknowledgments
-
-- **UCI Machine Learning Repository** for the Online Retail II dataset
-- **Lifetimes library** for CLV modeling implementation
-- **scikit-learn community** for machine learning tools
-- **Power BI team** for visualization capabilities
-- All open-source contributors whose libraries made this project possible
+- [UCI Machine Learning Repository](https://archive.ics.uci.edu/dataset/502/online+retail+ii) for the Online Retail II dataset.
+- The maintainers and contributors of Python, scikit-learn, Lifetimes, MySQL, and Power BI.
 
 ---
 
-### 📊 Final Project Statistics
-
-| Metric                          | Value          |
-| ------------------------------- | -------------- |
-| **Total Transactions Analyzed** | 779,425        |
-| **Unique Customers**            | 5,878          |
-| **Total Revenue**               | £17,374,804.27 |
-| **Features Engineered**         | 25             |
-| **ML Models Trained**           | 4              |
-| **Database Tables**             | 15             |
-| **Power BI Dashboard Pages**    | 8              |
-| **Customer Segments**           | 11             |
-| **Churn Prediction AUC**        | 72.9%          |
-| **Total Predicted CLV**         | £6,485,330.27  |
-| **A/B Test ROI**                | 648.2%         |
-
----
-
-### ⭐ If you find this project useful, please give it a star on GitHub!
-
-```
-
-```
+**Project repository:** https://github.com/BrokerRecord/Customer-Intelligence
